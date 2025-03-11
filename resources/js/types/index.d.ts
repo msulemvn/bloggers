@@ -35,4 +35,11 @@ export interface User {
     updated_at: string;
 }
 
+export interface CardItem {
+    title: string;
+    description: string;
+    icon?: LucideIcon;
+    count: number;
+}
+
 export type BreadcrumbItemType = BreadcrumbItem;
