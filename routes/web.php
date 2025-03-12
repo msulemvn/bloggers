@@ -13,7 +13,7 @@ Route::get('dashboard', function () {
 
 Route::get('users', function () {
     return Inertia::render('Users');
-})->middleware(['auth', 'verified'])->name('users');
+})->middleware(['auth', 'verified'])->name('users')->middleware('role:admin');
 
 Route::get('posts', function () {
     return Inertia::render('Posts');
