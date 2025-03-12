@@ -1,6 +1,7 @@
 import type { PageProps } from '@inertiajs/core';
 import type { LucideIcon } from 'lucide-vue-next';
 import type { Config } from 'ziggy-js';
+import { h } from 'vue'
 
 export interface Auth {
     user: User;
@@ -40,6 +41,13 @@ export interface CardItem {
     description: string;
     icon?: LucideIcon;
     count: number;
+}
+
+export interface Payment {
+    id: string
+    amount: number
+    status: 'pending' | 'processing' | 'success' | 'failed'
+    email: string
 }
 
 export type BreadcrumbItemType = BreadcrumbItem;
