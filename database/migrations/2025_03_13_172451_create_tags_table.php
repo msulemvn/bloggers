@@ -11,15 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('posts', function (Blueprint $table) {
+        Schema::create('tags', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->string('slug')->unique();
-            $table->foreignId('user_id')->constrained('users');
-            $table->text('content');
-            $table->string('feature_image')->nullable();
-            $table->boolean('is_published')->default(false);
-            $table->enum('status', ['approved', 'disapproved'])->default('disapproved');
             $table->timestamps();
         });
     }
@@ -29,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('posts');
+        Schema::dropIfExists('tags');
     }
 };

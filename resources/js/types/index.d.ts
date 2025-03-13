@@ -67,3 +67,14 @@ type UsersResponse = {
 interface ErrorMessages {
   [key: string]: string[];
 }
+
+export type Tag = {
+  id: number;
+  title: string;
+};
+
+type TagsResponse = {
+  data: Tag[];
+  meta: PaginationMeta;
+  links: PaginationLink[];
+};

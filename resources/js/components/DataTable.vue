@@ -1,11 +1,11 @@
 <script setup lang="ts" generic="TData, TValue">
-import { onMounted, ref, watch, computed } from 'vue';
-import type { ColumnDef } from '@tanstack/vue-table';
+import { onMounted, ref, watch } from 'vue';
+import type { ColumnDef, Table } from '@tanstack/vue-table';
 import { type PaginationMeta } from '@/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 import {
-    Table,
+    Table as TableComponent,
     TableBody,
     TableCell,
     TableHead,
@@ -18,7 +18,6 @@ import {
     getCoreRowModel,
     getPaginationRowModel,
     useVueTable,
-    type Table as VueTable
 } from '@tanstack/vue-table';
 
 const props = defineProps<{
@@ -29,7 +28,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['table-instance']);
 
-const table = ref<VueTable<TData>>();
+const table = ref<Table<TData> | undefined>();
 
 const createTable = (data: TData[]) => {
     table.value = useVueTable({
@@ -56,7 +55,7 @@ watch(() => props.data, (newData) => {
 <template>
     <div class="border rounded-md">
         <ScrollArea class="h-[70vh] w-full">
-            <Table v-if="table">
+            <TableComponent v-if="table">
                 <TableHeader>
                     <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
                         <TableHead v-for="header in headerGroup.headers" :key="header.id">
@@ -82,7 +81,7 @@ watch(() => props.data, (newData) => {
                         </TableRow>
                     </template>
                 </TableBody>
-            </Table>
+            </TableComponent>
         </ScrollArea>
     </div>
 </template>
