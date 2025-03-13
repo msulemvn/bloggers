@@ -1,5 +1,9 @@
 <script setup lang="ts" generic="TData, TValue">
-import type { ColumnDef } from '@tanstack/vue-table'
+import { onMounted, ref, watch, computed } from 'vue';
+import type { ColumnDef } from '@tanstack/vue-table';
+import { type PaginationMeta } from '@/types';
+import { ScrollArea } from '@/components/ui/scroll-area';
+
 import {
     Table,
     TableBody,
@@ -7,64 +11,78 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from '@/components/ui/table'
+} from '@/components/ui/table';
 
 import {
     FlexRender,
     getCoreRowModel,
     getPaginationRowModel,
     useVueTable,
-} from '@tanstack/vue-table'
+    type Table as VueTable
+} from '@tanstack/vue-table';
 
 const props = defineProps<{
-    columns: ColumnDef<TData, TValue>[]
-    data: TData[]
-}>()
+    columns: ColumnDef<TData, TValue>[];
+    data: TData[];
+    meta: PaginationMeta;
+}>();
 
-const table = useVueTable({
-    get data() { return props.data },
-    get columns() { return props.columns },
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-})
+const emit = defineEmits(['table-instance']);
+
+const table = ref<VueTable<TData>>();
+
+const createTable = (data: TData[]) => {
+    table.value = useVueTable({
+        data,
+        columns: props.columns,
+        getCoreRowModel: getCoreRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
+        manualPagination: true,
+    });
+
+    emit('table-instance', table.value);
+};
+
+onMounted(() => {
+    createTable(props.data);
+});
+
+watch(() => props.data, (newData) => {
+    createTable(newData);
+}, { deep: true });
+
 </script>
 
 <template>
     <div class="border rounded-md">
-        <Table>
-            <TableHeader>
-                <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
-                    <TableHead v-for="header in headerGroup.headers" :key="header.id">
-                        <FlexRender v-if="!header.isPlaceholder" :render="header.column.columnDef.header"
-                            :props="header.getContext()" />
-                    </TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                <template v-if="table.getRowModel().rows?.length">
-                    <TableRow v-for="row in table.getRowModel().rows" :key="row.id"
-                        :data-state="row.getIsSelected() ? 'selected' : undefined">
-                        <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
-                            <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
-                        </TableCell>
+        <ScrollArea class="h-[70vh] w-full">
+            <Table v-if="table">
+                <TableHeader>
+                    <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
+                        <TableHead v-for="header in headerGroup.headers" :key="header.id">
+                            <FlexRender v-if="!header.isPlaceholder" :render="header.column.columnDef.header"
+                                :props="header.getContext()" />
+                        </TableHead>
                     </TableRow>
-                </template>
-                <template v-else>
-                    <TableRow>
-                        <TableCell :colspan="columns.length" class="h-24 text-center">
-                            No results.
-                        </TableCell>
-                    </TableRow>
-                </template>
-            </TableBody>
-        </Table>
-    </div>
-    <div class="flex items-center justify-end py-4 space-x-2">
-        <Button variant="outline" size="sm" :disabled="!table.getCanPreviousPage()" @click="table.previousPage()">
-            Previous
-        </Button>
-        <Button variant="outline" size="sm" :disabled="!table.getCanNextPage()" @click="table.nextPage()">
-            Next
-        </Button>
+                </TableHeader>
+                <TableBody>
+                    <template v-if="table.getRowModel().rows?.length">
+                        <TableRow v-for="row in table.getRowModel().rows" :key="row.id"
+                            :data-state="row.getIsSelected() ? 'selected' : undefined">
+                            <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
+                                <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
+                            </TableCell>
+                        </TableRow>
+                    </template>
+                    <template v-else>
+                        <TableRow>
+                            <TableCell :colspan="props.columns.length" class="h-24 text-center">
+                                No results.
+                            </TableCell>
+                        </TableRow>
+                    </template>
+                </TableBody>
+            </Table>
+        </ScrollArea>
     </div>
 </template>
