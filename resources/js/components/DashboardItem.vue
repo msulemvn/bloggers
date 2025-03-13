@@ -8,6 +8,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { type CardItem } from '@/types';
+import { Link } from '@inertiajs/vue3';
 
 const props = defineProps<{
     cardItems: CardItem[];
@@ -16,7 +17,9 @@ const props = defineProps<{
 </script>
 
 <template>
-    <Card v-for="(item, index) in cardItems" :key="index">
+    <Link v-for="(item, index) in cardItems" :key="index" :href="item.route" class="block">
+    <Card
+        class="cursor-pointer select-none shadow-sm shadow-black/10 transition-shadow hover:shadow-md hover:shadow-black/20">
         <CardHeader v-if="item.title || item.description">
             <CardTitle v-if="item.title">{{ item.title }}</CardTitle>
             <CardDescription v-if="item.description">{{ item.description }}</CardDescription>
@@ -28,4 +31,5 @@ const props = defineProps<{
             Total {{ item.title }}: {{ item.count }}
         </CardFooter>
     </Card>
+    </Link>
 </template>

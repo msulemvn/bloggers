@@ -17,19 +17,22 @@ const cardItems: CardItem[] = [
         title: "Users",
         description: "Active users in the system",
         icon: Users,
-        count: 15
+        count: 15,
+        route: "/users"
     },
     {
         title: "Posts",
         description: "Published content items",
         icon: FileText,
-        count: 7
+        count: 7,
+        route: "/posts"
     },
     {
         title: "Tags",
         description: "Content categorization tags",
         icon: Tag,
-        count: 25
+        count: 25,
+        route: "/tags"
     }
 ];
 

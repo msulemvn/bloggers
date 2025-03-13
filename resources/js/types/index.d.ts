@@ -39,6 +39,7 @@ export interface CardItem {
   description: string;
   icon?: LucideIcon;
   count: number;
+  route: url;
 }
 
 type PaginationLink = {
