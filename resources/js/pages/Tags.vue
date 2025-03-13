@@ -177,7 +177,7 @@
                                 </p>
                             </div>
                             <form @submit.prevent="onSubmit" class="space-y-4">
-                                <FormField v-slot="{ componentField }" name="title">
+                                <FormField :validateOnBlur="false" v-slot="{ componentField }" name="title">
                                     <FormItem>
                                         <FormLabel>Title</FormLabel>
                                         <FormControl>

@@ -1,47 +1,153 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Head } from '@inertiajs/vue3';
+import { ref, computed, watch } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import DataTableDialog from '@/components/DataTableDialog.vue';
+import axios from 'axios';
+import { useToast } from '@/components/ui/toast/use-toast';
+import { useForm } from 'vee-validate';
+import { toTypedSchema } from '@vee-validate/zod';
+import * as z from 'zod';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Plus } from 'lucide-vue-next';
+
+const { toast } = useToast();
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Posts', href: '/posts' }];
 const props = defineProps<{ posts: any }>();
-const deleteDialogOpen = ref(false);
-const selectedPost = ref(null);
 
-const truncateContent = (content: string, maxLength: number = 120) =>
-    content?.length > maxLength ? content.substring(0, maxLength) + '...' : content;
+const operation = ref<'Create' | 'Edit'>('Create');
+const isDialogOpen = ref(false);
+const posts = ref(props.posts);
+const post = ref<Partial<any>>({});
 
-const getStatusBadge = (isPublished: number, status: number) => {
-    if (isPublished && status) return { label: 'Published', variant: 'success' };
-    if (isPublished) return { label: 'Pending', variant: 'warning' };
-    return { label: 'Draft', variant: 'secondary' };
+const formSchema = toTypedSchema(z.object({
+    title: z.string().min(1, 'Title is required').max(255, 'Title must be 255 characters or less'),
+    content: z.string().min(1, 'Content is required'),
+    feature_image: z
+        .instanceof(File)
+        .refine((file) => file.size > 0, { message: 'Image is required' })
+        .refine((file) => file.size <= 5 * 1024 * 1024, { message: 'Image must be less than 5MB' })
+        .refine((file) => ['image/jpeg', 'image/png'].includes(file.type), {
+            message: 'Only JPEG and PNG images are allowed'
+        })
+        .or(z.literal('').optional()),
+}));
+
+const defaultPostValues = computed(() => ({
+    title: '',
+    content: '',
+}));
+
+const form = useForm({
+    validationSchema: formSchema,
+    initialValues: post.value,
+});
+
+watch(
+    () => post.value,
+    (newPost) => {
+        if (newPost) {
+            form.setValues(newPost);
+        }
+    },
+    { deep: false }
+);
+
+const handleCreateClick = () => {
+    operation.value = 'Create';
+    isDialogOpen.value = true;
+    post.value = { ...defaultPostValues.value };
 };
 
-const confirmDelete = (post) => {
-    selectedPost.value = post;
-    deleteDialogOpen.value = true;
+const handleEdit = (data: any) => {
+    operation.value = 'Edit';
+    isDialogOpen.value = true;
+    post.value = { ...data };
 };
 
-const deletePost = () => {
-    if (selectedPost.value) {
-        router.delete(`/posts/${selectedPost.value.id}`, {
-            onSuccess: () => {
-                deleteDialogOpen.value = false;
-                selectedPost.value = null;
+const handleApiResponse = async (method: string, url: string, values: any) => {
+    try {
+        const headers = { 'Content-Type': 'multipart/form-data' };
+
+        if (method === 'put') {
+            values.append('_method', 'PUT');
+        }
+
+        const response = await axios.post(url, values, { headers });
+
+        if (response.status === 201) {
+            posts.value.data.unshift(response.data.data);
+            toast({ description: 'Post created successfully' });
+        } else {
+            const index = posts.value.data.findIndex((p: any) => p.id === response.data.data.id);
+            if (index !== -1) {
+                posts.value.data[index] = response.data.data;
+                toast({ description: 'Post updated successfully' });
             }
-        });
+        }
+
+        return true;
+    } catch (error: any) {
+        const errors = error.response?.data.errors;
+        if (errors && 'validation' in errors) {
+            form.setErrors(errors.validation);
+        } else {
+            toast({ description: 'An unexpected error occurred.', variant: 'destructive' });
+        }
+        return false;
     }
 };
 
-const handleCreateClick = () => {
-    router.visit('/posts/create');
+const onSubmit = form.handleSubmit(async (values) => {
+    const method = operation.value === 'Create' ? 'post' : 'put';
+    const url = `/posts${operation.value === 'Edit' ? '/' + post.value.id : ''}`;
+
+    const formData = new FormData();
+    formData.append('title', values.title);
+    formData.append('content', values.content);
+    if (values.feature_image instanceof File) {
+        formData.append('feature_image', values.feature_image);
+    }
+
+    const success = await handleApiResponse(method, url, formData);
+
+    if (success) {
+        isDialogOpen.value = false;
+        form.resetForm();
+    }
+});
+
+const onDialogClose = () => {
+    isDialogOpen.value = false;
+    form.resetForm();
 };
+
+const handleFileChange = (file: File | null | Event) => {
+    let selectedFile: File | null = null;
+
+    if (file instanceof Event) {
+        const input = file.target as HTMLInputElement;
+        selectedFile = input.files?.[0] || null;
+    } else {
+        selectedFile = file as File | null;
+    }
+
+    if (selectedFile) {
+        form.setFieldValue('feature_image', selectedFile);
+    } else {
+        form.setFieldValue('feature_image', null);
+    }
+};
+
+const currentFileValue = computed(() => form.values.feature_image || null);
+
+const hasNoPosts = computed(() => !posts.value.data.length);
 </script>
 
 <template>
@@ -49,71 +155,73 @@ const handleCreateClick = () => {
     <Head title="Posts" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="container mx-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-bold">Posts</h1>
-                <div class="flex items-center justify-end py-4 space-x-2">
-                    <Button size="sm" @click="handleCreateClick">
-                        <Plus class="w-5 h-5" />
-                        Create Post
-                    </Button>
+            <div class="flex items-center justify-end py-4 space-x-2">
+                <Button size="sm" @click="handleCreateClick">
+                    <Plus class="w-5 h-5" />
+                    Create Post
+                </Button>
+            </div>
+            <template v-if="!hasNoPosts">
+                <div class="grid gap-4">
+                    <Card v-for="post in posts.data" :key="post.id">
+                        <CardHeader>{{ post.title }}</CardHeader>
+                        <CardContent>
+                            <div v-if="post.feature_image" class="w-full h-48 overflow-hidden rounded-lg border">
+                                <img :src="post.feature_image" alt="Feature Image" class="w-full h-full object-cover" />
+                            </div>
+                            {{ post.content }}
+                        </CardContent>
+                        <CardFooter>
+                            <Button size="sm" @click="handleEdit(post)">Edit</Button>
+                        </CardFooter>
+                    </Card>
                 </div>
-            </div>
-
-            <div v-if="posts.data.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <Card v-for="post in posts.data" :key="post.id" class="overflow-hidden">
-                    <div class="h-48 overflow-hidden">
-                        <img :src="post.feature_image" :alt="post.title"
-                            class="w-full h-full object-cover hover:scale-105 transition duration-300">
-                    </div>
-
-                    <CardHeader class="pb-2">
-                        <div class="flex justify-between items-center mb-1">
-                            <Badge :variant="getStatusBadge(post.is_published, post.status).variant">
-                                {{ getStatusBadge(post.is_published, post.status).label }}
-                            </Badge>
-                            <span class="text-xs text-muted-foreground">ID: {{ post.id }}</span>
-                        </div>
-                        <h3 class="text-lg font-semibold line-clamp-2">{{ post.title }}</h3>
-                    </CardHeader>
-
-                    <CardContent>
-                        <p class="text-sm text-muted-foreground line-clamp-3">{{ truncateContent(post.content) }}</p>
-                    </CardContent>
-
-                    <CardFooter class="pt-2 border-t flex justify-between">
-                        <Button variant="ghost" size="sm" @click="router.visit(`/posts/${post.id}`)">View</Button>
-                        <div class="flex gap-2">
-                            <Button variant="outline" size="sm"
-                                @click="router.visit(`/posts/${post.id}/edit`)">Edit</Button>
-                            <Button variant="destructive" size="sm" @click="confirmDelete(post)">Delete</Button>
-                        </div>
-                    </CardFooter>
-                </Card>
-            </div>
-
-            <div v-else
-                class="flex flex-col items-center justify-center py-16 bg-muted/20 rounded-lg border border-dashed">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-4 text-muted" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                </svg>
-                <p class="text-lg font-medium mb-1">No posts available</p>
-                <Button @click="handleCreateClick" class="mt-4">Create Post</Button>
+            </template>
+            <div v-else class="text-center py-8 text-gray-500">
+                No posts available. Create your first post!
             </div>
         </div>
-    </AppLayout>
 
-    <Dialog :open="deleteDialogOpen" @update:open="deleteDialogOpen = $event">
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Delete Post</DialogTitle>
-                <DialogDescription>Are you sure you want to delete "{{ selectedPost?.title }}"?</DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-                <Button variant="outline" @click="deleteDialogOpen = false">Cancel</Button>
-                <Button variant="destructive" @click="deletePost">Delete</Button>
-            </DialogFooter>
-        </DialogContent>
-    </Dialog>
+        <DataTableDialog :isDialogOpen="isDialogOpen" :operation="operation" @onDialogClose="onDialogClose">
+            <template #dialog-content>
+                <form @submit.prevent="onSubmit" class="space-y-4 p-4">
+                    <FormField :validateOnBlur="false" v-slot="{ componentField }" name="title">
+                        <FormItem>
+                            <FormLabel>Title</FormLabel>
+                            <FormControl>
+                                <Input v-bind="componentField" placeholder="Enter post title" />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    </FormField>
+
+                    <FormField :validateOnBlur="false" v-slot="{ componentField }" name="content">
+                        <FormItem>
+                            <FormLabel>Content</FormLabel>
+                            <FormControl>
+                                <Textarea v-bind="componentField" placeholder="Enter post content" />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    </FormField>
+
+                    <FormField :validateOnBlur="false" v-slot="{ componentField }" name="feature_image">
+                        <FormItem>
+                            <FormLabel>Image</FormLabel>
+                            <FormControl>
+                                <Input type="file" @change="handleFileChange" accept="image/*" class="mt-1 block w-full"
+                                    ref="fileInput" />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    </FormField>
+
+                    <div class="flex justify-end space-x-2">
+                        <Button variant="outline" @click="onDialogClose">Cancel</Button>
+                        <Button type="submit">Save</Button>
+                    </div>
+                </form>
+            </template>
+        </DataTableDialog>
+    </AppLayout>
 </template>

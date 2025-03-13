@@ -7,7 +7,7 @@ export function useFormField() {
   const fieldItemContext = inject(FORM_ITEM_INJECTION_KEY)
 
   if (!fieldContext)
-    throw new Error('useFormField should be used within <FormField>')
+    throw new Error('useFormField should be used within <FormField :validateOnBlur="false" >')
 
   const { name } = fieldContext
   const id = fieldItemContext

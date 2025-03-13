@@ -6,18 +6,24 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
+use Illuminate\Support\Facades\Auth;
 
 class Post extends Model
 {
     use HasFactory, HasSlug;
     protected $fillable = [
-        'title',
         'user_id',
+        'title',
         'content',
         'feature_image',
-        'is_published',
-        'status'
     ];
+
+    protected static function booted()
+    {
+        static::creating(function ($post) {
+            $post->user_id = $post->user_id ?? Auth::id();
+        });
+    }
 
     public function getSlugOptions(): SlugOptions
     {
@@ -29,5 +35,10 @@ class Post extends Model
     public function getRouteKeyName()
     {
         return 'slug';
+    }
+
+    public function getFeatureImageAttribute($value)
+    {
+        return $value ? asset('storage/pictures/' . $value) : null;
     }
 }

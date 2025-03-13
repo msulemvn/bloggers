@@ -14,25 +14,40 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Requests\Post\StorePostRequest;
 use App\Http\Requests\Post\UpdatePostRequest;
 use App\DTO\Post\StorePostDTO;
+use App\Services\PictureService;
 
 class PostController extends Controller
 {
+    protected $pictureService;
+
+    public function __construct(PictureService $pictureService)
+    {
+        $this->pictureService = $pictureService;
+    }
+
     public function index(): Response
     {
-        $posts = Post::where("id", "=", Auth::id())->orderBy('id', 'DESC')->paginate();
+        $posts = Post::where("user_id", "=", Auth::id())->orderBy('id', 'DESC')->paginate();
         $posts = PostResource::collection($posts);
         return Inertia::render("Posts", compact("posts"));
     }
 
     public function store(StorePostRequest $request)
     {
+        $newFileName = '';
+        if ($request->hasFile('feature_image')) {
+            $newFileName = $this->pictureService->upload(
+                $request->file('feature_image'),
+                $request->file('feature_image')->getClientOriginalName()
+            );
+        }
+
         $data = $request->validated();
+        $data['feature_image'] = $newFileName;
         $PostDTO = new StorePostDTO(
             $data["title"],
-            $data["user_id"],
-            $data["is_published"],
-            $data["status"],
-            $data["feature_image"]
+            $data["content"],
+            $data["feature_image"] ?? ""
         );
         $post = Post::create($PostDTO->toArray());
 
@@ -52,6 +67,16 @@ class PostController extends Controller
         try {
             $post = Post::findOrFail($id);
             $post->fill($request->validated());
+            $newFileName = '';
+
+            if ($request->hasFile('feature_image')) {
+                $newFileName = $this->pictureService->upload(
+                    $request->file('feature_image'),
+                    $request->file('feature_image')->getClientOriginalName()
+                );
+                $post->feature_image = $newFileName;
+            }
+
             $post->save();
 
             logActivity(request: $request, description: "User updated a post", showable: true);

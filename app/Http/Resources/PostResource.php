@@ -16,7 +16,7 @@ class PostResource extends JsonResource
             "content" => $this->content,
             "feature_image" => $this->feature_image,
             "is_published" => $this->is_published,
-            "status" => $this->is_published,
+            "status" => $this->status,
         ];
     }
 }
