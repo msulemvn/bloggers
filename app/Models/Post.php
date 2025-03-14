@@ -7,7 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Scopes\CurrentScope;
+use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 
+#[ScopedBy([CurrentScope::class])]
 class Post extends Model
 {
     use HasFactory, HasSlug;

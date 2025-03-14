@@ -5,15 +5,12 @@ namespace App\Http\Controllers\Tag;
 use Inertia\Inertia;
 use Inertia\Response;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Tag;
 use App\Http\Resources\TagResource;
 use Symfony\Component\HttpFoundation\Response as symfonyResponse;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Requests\Tag\StoreTagRequest;
 use App\Http\Requests\Tag\UpdateTagRequest;
 use Illuminate\Http\Request;
-use App\DTO\Tag\StoreTagDTO;
 
 class TagController extends Controller
 {
@@ -26,44 +23,29 @@ class TagController extends Controller
 
     public function store(StoreTagRequest $request)
     {
-        $data = $request->validated();
-        $TagDTO = new StoreTagDTO(
-            $data["title"]
-        );
-        $tag = Tag::create($TagDTO->toArray());
+        $tag = Tag::create($request->validated());
 
         logActivity(request: $request, description: "User created a new tag", showable: true);
         return apiResponse(message: "Tag added successfully", data: TagResource::make($tag), statusCode: symfonyResponse::HTTP_CREATED);
     }
 
-    public function update(UpdateTagRequest $request, $id)
+    public function update(UpdateTagRequest $request, Tag $tag)
     {
-        try {
+        $tag->fill($request->validated());
+        $tag->save();
 
-            $tag = Tag::findOrFail($id);
-            $tag->fill($request->validated());
-            $tag->save();
-
-            logActivity(request: $request, description: "User updated a tag", showable: true);
-            return apiResponse(message: "Tag updated successfully", data: TagResource::make($tag));
-        } catch (ModelNotFoundException $e) {
-            return apiResponse(errors: ["id" => ["No query results for tag"]], statusCode: symfonyResponse::HTTP_NOT_FOUND);
-        }
+        logActivity(request: $request, description: "User updated a tag", showable: true);
+        return apiResponse(message: "Tag updated successfully", data: TagResource::make($tag));
     }
 
-    public function destroy($id, Request $request)
+    public function destroy(Request $request, Tag $tag)
     {
-        try {
-            $tag = Tag::find($id);
-            if (!$tag) {
-                return apiResponse(errors: ["id" => ["Tag not found"]], statusCode: symfonyResponse::HTTP_NOT_FOUND);
-            }
-            $tag->delete();
-
-            logActivity(request: $request, description: "User deleted a tag", showable: true);
-            return apiResponse(message: "Tag deleted successfully", statusCode: symfonyResponse::HTTP_NO_CONTENT);
-        } catch (ModelNotFoundException $e) {
-            return apiResponse(data: ["id" => ["No query results for tag"]], statusCode: symfonyResponse::HTTP_NOT_FOUND);
+        if (!$tag) {
+            return apiResponse(errors: ["id" => ["Tag not found"]], statusCode: symfonyResponse::HTTP_NOT_FOUND);
         }
+        $tag->delete();
+
+        logActivity(request: $request, description: "User deleted a tag", showable: true);
+        return apiResponse(message: "Tag deleted successfully", statusCode: symfonyResponse::HTTP_NO_CONTENT);
     }
 }

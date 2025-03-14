@@ -2,11 +2,12 @@
 
 namespace App\Services;
 
+use App\Contracts\PictureServiceInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
-class PictureService
+class PictureService implements PictureServiceInterface
 {
     protected $directory = 'pictures';
 

@@ -9,11 +9,9 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Http\Resources\UserResource;
 use Symfony\Component\HttpFoundation\Response as symfonyResponse;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use Illuminate\Http\Request;
-use App\DTO\User\StoreUserDTO;
 
 class UserController extends Controller
 {
@@ -26,8 +24,7 @@ class UserController extends Controller
 
     public function store(StoreUserRequest $request)
     {
-        $userDTO = new StoreUserDTO($request->validated());
-        $user = User::create($userDTO->toArray());
+        $user = User::create($request->validated());
 
         logActivity(request: $request, description: "User created a new user", showable: true);
         return apiResponse(message: "User added successfully", data: UserResource::make($user), statusCode: symfonyResponse::HTTP_CREATED);
@@ -40,34 +37,23 @@ class UserController extends Controller
         ]);
     }
 
-    public function update(UpdateUserRequest $request, $id)
+    public function update(UpdateUserRequest $request, User $user)
     {
-        try {
+        $user->fill($request->validated());
+        $user->save();
 
-            $user = User::findOrFail($id);
-            $user->fill($request->validated());
-            $user->save();
-
-            logActivity(request: $request, description: "User updated a user", showable: true);
-            return apiResponse(message: "User updated successfully", data: UserResource::make($user));
-        } catch (ModelNotFoundException $e) {
-            return apiResponse(errors: ["id" => ["No query results for user"]], statusCode: symfonyResponse::HTTP_NOT_FOUND);
-        }
+        logActivity(request: $request, description: "User updated a user", showable: true);
+        return apiResponse(message: "User updated successfully", data: UserResource::make($user));
     }
 
-    public function destroy($id, Request $request)
+    public function destroy(Request $request, User $user)
     {
-        try {
-            $user = User::find($id);
-            if (!$user) {
-                return apiResponse(errors: ["id" => ["User not found"]], statusCode: symfonyResponse::HTTP_NOT_FOUND);
-            }
-            $user->delete();
-
-            logActivity(request: $request, description: "User deleted a user", showable: true);
-            return apiResponse(message: "User deleted successfully", statusCode: symfonyResponse::HTTP_NO_CONTENT);
-        } catch (ModelNotFoundException $e) {
-            return apiResponse(data: ["id" => ["No query results for user"]], statusCode: symfonyResponse::HTTP_NOT_FOUND);
+        if (!$user) {
+            return apiResponse(errors: ["id" => ["User not found"]], statusCode: symfonyResponse::HTTP_NOT_FOUND);
         }
+        $user->delete();
+
+        logActivity(request: $request, description: "User deleted a user", showable: true);
+        return apiResponse(message: "User deleted successfully", statusCode: symfonyResponse::HTTP_NO_CONTENT);
     }
 }

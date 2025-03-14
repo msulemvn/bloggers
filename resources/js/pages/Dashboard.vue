@@ -11,27 +11,28 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/dashboard',
     },
 ];
+const props = defineProps<{ count: any }>();
 
 const cardItems: CardItem[] = [
     {
         title: "Users",
         description: "Active users in the system",
         icon: Users,
-        count: 15,
+        count: props.count.users,
         route: "/users"
     },
     {
         title: "Posts",
         description: "Published content items",
         icon: FileText,
-        count: 7,
+        count: props.count.posts,
         route: "/posts"
     },
     {
         title: "Tags",
         description: "Content categorization tags",
         icon: Tag,
-        count: 25,
+        count: props.count.tags,
         route: "/tags"
     }
 ];

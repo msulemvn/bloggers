@@ -9,16 +9,9 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('dashboard', function () {
-    return Inertia::render('Dashboard');
+    $count = ["users" => App\Models\User::count(), "posts" => App\Models\Post::count(), "tags" => App\Models\Tag::count()];
+    return Inertia::render('Dashboard', compact('count'));
 })->middleware(['auth', 'verified'])->name('dashboard');
-
-Route::get('posts', function () {
-    return Inertia::render('Posts');
-})->middleware(['auth', 'verified'])->name('posts');
-
-Route::get('tags', function () {
-    return Inertia::render('Tags');
-})->middleware(['auth', 'verified'])->name('tags');
 
 Route::get('permissions', function (Request $request) {
     $permissions = $request->user()->roles->flatMap->permissions->pluck('name')->unique();;
