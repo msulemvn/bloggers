@@ -41,4 +41,9 @@ class Post extends Model
     {
         return $value ? asset('storage/pictures/' . $value) : null;
     }
+
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class)->withTimestamps();
+    }
 }

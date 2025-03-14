@@ -17,6 +17,7 @@ class PostResource extends JsonResource
             "feature_image" => $this->feature_image,
             "is_published" => $this->is_published,
             "status" => $this->status,
+            'tags' => TagResource::collection($this->whenLoaded('tags')),
         ];
     }
 }

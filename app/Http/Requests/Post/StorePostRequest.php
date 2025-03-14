@@ -12,6 +12,8 @@ class StorePostRequest extends BaseRequest
             'title' => ['required', 'string', 'max:255'],
             'content' => ['required', 'string'],
             'feature_image' => ['sometimes', 'nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+            'tags' => 'nullable',
+            // 'tags.*' => 'nullable|integer|exists:tags,id',
         ];
     }
 

@@ -8,7 +8,9 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Post;
+use App\Models\Tag;
 use App\Http\Resources\PostResource;
+use App\Http\Resources\TagResource;
 use Symfony\Component\HttpFoundation\Response as symfonyResponse;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Requests\Post\StorePostRequest;
@@ -27,9 +29,11 @@ class PostController extends Controller
 
     public function index(): Response
     {
-        $posts = Post::where("user_id", "=", Auth::id())->orderBy('id', 'DESC')->paginate();
+        $posts = Post::with('tags')->where("user_id", "=", Auth::id())->orderBy('id', 'DESC')->paginate();
+        $tags = Tag::all();
+        $tags = TagResource::collection($tags);
         $posts = PostResource::collection($posts);
-        return Inertia::render("Posts", compact("posts"));
+        return Inertia::render("Posts", compact("posts", "tags"));
     }
 
     public function store(StorePostRequest $request)
@@ -50,6 +54,10 @@ class PostController extends Controller
             $data["feature_image"] ?? ""
         );
         $post = Post::create($PostDTO->toArray());
+        if ($request->has('tags')) {
+            $data['tags'] = json_decode($data['tags']);
+            $post->tags()->sync($data['tags']);
+        }
 
         logActivity(request: $request, description: "User created a new post", showable: true);
         return apiResponse(message: "Post added successfully", data: PostResource::make($post), statusCode: symfonyResponse::HTTP_CREATED);
@@ -77,7 +85,13 @@ class PostController extends Controller
                 $post->feature_image = $newFileName;
             }
 
+            if ($request->has('tags')) {
+                $request['tags'] = json_decode($request['tags']);
+                $post->tags()->sync($request['tags']);
+            }
+
             $post->save();
+            $post->tags()->sync($request->tags);
 
             logActivity(request: $request, description: "User updated a post", showable: true);
             return apiResponse(message: "Post updated successfully", data: PostResource::make($post));
