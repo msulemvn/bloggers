@@ -9,7 +9,7 @@ class UpdateTagRequest extends BaseRequest
     public function rules()
     {
         return [
-            'title' => ['required', 'unique:tags,title,' . $this->id,  'string', 'max:255'],
+            'title' => ['required', 'unique:tags,title,' . $this->user->id,  'string', 'max:255'],
         ];
     }
 }

@@ -10,7 +10,7 @@ class UpdateUserRequest extends BaseRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email:rfc,dns', 'max:255', 'unique:users,email,' . $this->id],
+            'email' => ['required', 'string', 'email:rfc,dns', 'max:255', 'unique:users,email,' . $this->user->id],
             'password' => ['optional', 'string', 'min:8', 'confirmed'],
         ];
     }

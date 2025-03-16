@@ -1,12 +1,12 @@
 <?php
 
-use App\Http\Controllers\Post\PostController;
+use App\Http\Controllers\PostController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth')->group(function () {
-    Route::get('/posts', [PostController::class, 'index'])->name('posts');
-    Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
-    Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.store');
-    Route::put('/posts/{id}', [PostController::class, 'update'])->name('posts.update');
-    Route::delete('/posts/{id}', [PostController::class, 'destroy'])->name('posts.destroy');
+Route::middleware('auth')->prefix('posts')->name('posts.')->group(function () {
+    Route::get('/', [PostController::class, 'index'])->name('index');
+    Route::post('/', [PostController::class, 'store'])->name('store');
+    Route::get('/{post}', [PostController::class, 'show'])->name('show');
+    Route::put('/{post}', [PostController::class, 'update'])->name('update');
+    Route::delete('/{post}', [PostController::class, 'destroy'])->name('destroy');
 });

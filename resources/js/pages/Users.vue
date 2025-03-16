@@ -77,7 +77,7 @@ const handleDelete = async (data: User) => {
             toast({ description: "User deleted successfully" });
         }
     } catch (error: any) {
-        toast({ description: "Error deleting user", variant: "destructive" });
+        toast({ description: "Error deleting user: " + error, variant: "destructive" });
     }
 };
 

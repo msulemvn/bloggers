@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type Tag } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import { ref, computed, watch } from 'vue';
 import { Button } from '@/components/ui/button';
@@ -17,11 +17,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, X, ChevronDown } from 'lucide-vue-next';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-
-interface Tag {
-    id: number | null;
-    title: string;
-}
 
 const { toast } = useToast();
 
@@ -102,6 +97,29 @@ const handleEdit = (data: any) => {
     tagSearchQuery.value = '';
 };
 
+const handleDelete = async (data: any) => {
+    try {
+        const index = posts.value.data.findIndex((p: any) => p.id === data.id);
+        if (index !== -1) {
+            posts.value.data.splice(index, 1);
+        }
+
+        const response = await axios.delete(`/posts/${data.slug}`);
+
+        if (response.status === 200) {
+            const index = posts.value.data.findIndex((p: any) => p.id === data.id);
+            if (index !== -1) {
+                posts.value.data.splice(index, 1);
+            }
+
+            toast({ description: 'Post deleted successfully' });
+        }
+    } catch (error: any) {
+        const errorMessage = error.response?.data?.message || 'An error occurred while deleting the post';
+        toast({ description: errorMessage, variant: 'destructive' });
+    }
+};
+
 const processPostRequest = async (method: string, url: string, values: any) => {
     try {
         const headers = { 'Content-Type': 'multipart/form-data' };
@@ -144,7 +162,7 @@ const processPostRequest = async (method: string, url: string, values: any) => {
 
 const onSubmit = form.handleSubmit(async (values) => {
     const method = operation.value === 'Create' ? 'post' : 'put';
-    const url = `/posts${operation.value === 'Edit' ? '/' + post.value.id : ''}`;
+    const url = `/posts${operation.value === 'Edit' ? '/' + post.value.slug : ''}`;
 
     const formData = new FormData();
     formData.append('title', values.title);
@@ -202,7 +220,6 @@ const isTagSelected = (tag: Tag) => {
     return selectedTags.value.some(t => t.id === tag.id);
 };
 
-// Ensure a unique key when tag.id might be null
 const getTagKey = (tag: Tag) => tag.id ?? `tag-${tag.title}`;
 </script>
 
@@ -219,22 +236,27 @@ const getTagKey = (tag: Tag) => tag.id ?? `tag-${tag.title}`;
             </div>
             <template v-if="!hasNoPosts">
                 <div class="grid gap-4">
-                    <Card v-for="post in posts.data" :key="post.id">
-                        <CardHeader>{{ post.title }}</CardHeader>
-                        <CardContent>
-                            <div v-if="post.feature_image" class="w-full h-48 overflow-hidden rounded-lg border">
-                                <img :src="post.feature_image" alt="Feature Image" class="w-full h-full object-cover" />
-                            </div>
-                            {{ post.content }}
-                            <div v-if="post.tags && post.tags.length" class="mt-3 flex flex-wrap gap-2">
-                                <span v-for="tag in post.tags" :key="getTagKey(tag)"
-                                    class="px-2 py-1 bg-gray-200 text-gray-700 text-sm rounded">
-                                    {{ tag.title }}
-                                </span>
-                            </div>
-                        </CardContent>
-                        <CardFooter>
+                    <Card v-for="post in posts.data" :key="post.id"
+                        class="cursor-pointer select-none shadow-sm shadow-black/10 transition-shadow hover:shadow-md hover:shadow-black/20">
+                        <a :href="`/posts/${post.slug}`" class="block">
+                            <CardHeader>{{ post.title }}</CardHeader>
+                            <CardContent>
+                                <div v-if="post.feature_image" class="w-full h-48 overflow-hidden rounded-lg border">
+                                    <img :src="post.feature_image" alt="Feature Image"
+                                        class="w-full h-full object-cover" />
+                                </div>
+                                {{ post.content }}
+                                <div v-if="post.tags && post.tags.length" class="mt-3 flex flex-wrap gap-2">
+                                    <span v-for="tag in post.tags" :key="getTagKey(tag)"
+                                        class="px-2 py-1 bg-gray-200 text-gray-700 text-sm rounded">
+                                        {{ tag.title }}
+                                    </span>
+                                </div>
+                            </CardContent>
+                        </a>
+                        <CardFooter class="flex gap-2">
                             <Button size="sm" @click="handleEdit(post)">Edit</Button>
+                            <Button size="sm" variant="destructive" @click="handleDelete(post)">Delete</Button>
                         </CardFooter>
                     </Card>
                 </div>
@@ -267,7 +289,7 @@ const getTagKey = (tag: Tag) => tag.id ?? `tag-${tag.title}`;
                         </FormItem>
                     </FormField>
 
-                    <FormField :validateOnBlur="false" v-slot="{ componentField }" name="feature_image">
+                    <FormField :validateOnBlur="false" name="feature_image">
                         <FormItem>
                             <FormLabel>Image (optional)</FormLabel>
                             <FormControl>
@@ -278,7 +300,7 @@ const getTagKey = (tag: Tag) => tag.id ?? `tag-${tag.title}`;
                         </FormItem>
                     </FormField>
 
-                    <FormField :validateOnBlur="false" v-slot="{ value, handleChange }" name="tags">
+                    <FormField :validateOnBlur="false" name="tags">
                         <FormItem>
                             <FormLabel>Tags</FormLabel>
                             <FormControl>
@@ -302,7 +324,7 @@ const getTagKey = (tag: Tag) => tag.id ?? `tag-${tag.title}`;
                                                         :checked="isTagSelected(tag)"
                                                         @update:checked="toggleTag(tag)" />
                                                     <label :for="'tag-' + getTagKey(tag)" class="text-sm">{{ tag.title
-                                                    }}</label>
+                                                        }}</label>
                                                 </div>
                                             </div>
                                             <div v-else class="text-sm text-gray-500 text-center py-2">
