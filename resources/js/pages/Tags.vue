@@ -158,7 +158,7 @@
                 <div class="flex justify-between items-center mb-6">
                     <h1 class="text-2xl font-bold">Tags</h1>
                     <div class="flex items-center justify-end py-4 space-x-2">
-                        <Button size="sm" @click="handleCreateClick">
+                        <Button size="sm" @click="handleCreateClick" v-if="can('create:tags')">
                             <Plus class="w-5 h-5 mr-2" />
                             New Tag
                         </Button>

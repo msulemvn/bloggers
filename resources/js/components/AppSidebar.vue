@@ -5,7 +5,7 @@ import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Users, FileText, Tag, ShieldCheck } from 'lucide-vue-next';
+import { LayoutGrid, Users, Rss, FileText, Tag, ShieldCheck } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
@@ -13,27 +13,38 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: '/dashboard',
         icon: LayoutGrid,
+        role: 'admin || user'
     },
     {
         title: 'Users',
         href: '/users',
         icon: Users,
+        role: 'admin'
+    },
+    {
+        title: 'Feed',
+        href: '/feed',
+        icon: Rss,
+        role: 'user'
     },
     {
         title: 'Posts',
         href: '/posts',
         icon: FileText,
+        role: 'admin | user'
     },
     {
         title: 'Tags',
         href: '/tags',
         icon: Tag,
+        role: 'user'
     },
     {
         title: 'Permissions',
         href: '/permissions',
         icon: ShieldCheck,
-    },
+        role: 'admin | user'
+    }
 ];
 
 const footerNavItems: NavItem[] = [

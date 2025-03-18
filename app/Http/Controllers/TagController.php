@@ -16,7 +16,7 @@ class TagController extends Controller
 {
     public function index(): Response
     {
-        $tags = Tag::OrderBy('id', 'DESC')->paginate();
+        $tags = Tag::latest()->paginate();
         $tags = TagResource::collection($tags);
         return Inertia::render("Tags", compact("tags"));
     }

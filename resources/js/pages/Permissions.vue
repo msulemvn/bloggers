@@ -2,7 +2,6 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
-import PlaceholderPattern from '../components/PlaceholderPattern.vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -12,10 +11,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const props = defineProps<{
-    permissions: string[];
+    access: string[];
 }>();
 
-const groupedPermissions = props.permissions.reduce((acc: Record<string, string[]>, permission) => {
+const groupedPermissions = props.access.reduce((acc: Record<string, string[]>, permission) => {
     const [action, entity] = permission.split(':');
     if (!acc[entity]) acc[entity] = [];
     acc[entity].push(action);

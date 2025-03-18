@@ -9,13 +9,21 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('dashboard', function () {
-    $count = ["users" => App\Models\User::count(), "posts" => App\Models\Post::count(), "tags" => App\Models\Tag::count()];
+    $count = [
+        "users" => App\Models\User::count(),
+        "posts" => Auth::user()->hasRole('admin')
+            ? App\Models\Post::count()
+            : App\Models\Post::currentUserPost()->count(),
+        "tags" => App\Models\Tag::count(),
+    ];
+
     return Inertia::render('Dashboard', compact('count'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+
 Route::get('permissions', function (Request $request) {
-    $permissions = $request->user()->roles->flatMap->permissions->pluck('name')->unique();;
-    return Inertia::render('Permissions', compact('permissions'));
+    $access = $request->user()->roles->flatMap->permissions->pluck('name')->unique();;
+    return Inertia::render('Permissions', compact('access'));
 })->middleware(['auth', 'verified'])->name('permissions');
 
 require __DIR__ . '/tags.php';

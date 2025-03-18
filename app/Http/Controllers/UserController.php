@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Inertia\Inertia;
 use Inertia\Response;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Http\Resources\UserResource;
 use Symfony\Component\HttpFoundation\Response as symfonyResponse;
@@ -17,7 +16,7 @@ class UserController extends Controller
 {
     public function index(): Response
     {
-        $users = User::where("id", "!=", Auth::id())->orderBy('id', 'DESC')->paginate();
+        $users = User::latest()->paginate();
         $users = UserResource::collection($users);
         return Inertia::render("Users", compact("users"));
     }
@@ -25,6 +24,7 @@ class UserController extends Controller
     public function store(StoreUserRequest $request)
     {
         $user = User::create($request->validated());
+        $user->assignRole('user');
 
         logActivity(request: $request, description: "User created a new user", showable: true);
         return apiResponse(message: "User added successfully", data: UserResource::make($user), statusCode: symfonyResponse::HTTP_CREATED);

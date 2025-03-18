@@ -6,6 +6,8 @@ import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from 'ziggy-js';
 import { initializeTheme } from './composables/useAppearance';
+import LaravelPermissionToVueJS from "../../vendor/zodexnl/spatie-permission-to-vue-inertia/src/js";
+import Vue from 'vue';
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
@@ -28,6 +30,7 @@ createInertiaApp({
     setup({ el, App, props, plugin }) {
         createApp({ render: () => h(App, props) })
             .use(plugin)
+            .use(LaravelPermissionToVueJS)
             .use(ZiggyVue)
             .mount(el);
     },

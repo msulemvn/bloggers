@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f530c6a3b2766a7aceaf2746d0d94e36",
+    "content-hash": "a02a8ce8dbc3c9010fac224fb8060085",
     "packages": [
         {
             "name": "brick/math",
@@ -6070,6 +6070,45 @@
                 "source": "https://github.com/webmozarts/assert/tree/1.11.0"
             },
             "time": "2022-06-03T18:03:27+00:00"
+        },
+        {
+            "name": "zodexnl/spatie-permission-to-vue-inertia",
+            "version": "v1.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ZodexNL/spatie-permission-to-vue-inertia.git",
+                "reference": "ae3069e48be4d8f57f71417bb06fc166abe668f5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ZodexNL/spatie-permission-to-vue-inertia/zipball/ae3069e48be4d8f57f71417bb06fc166abe668f5",
+                "reference": "ae3069e48be4d8f57f71417bb06fc166abe668f5",
+                "shasum": ""
+            },
+            "require": {
+                "spatie/laravel-permission": ">=5.4.0"
+            },
+            "type": "plugin",
+            "autoload": {
+                "psr-4": {
+                    "SpatiePermissionsToVueInertia\\Traits\\": "src/Traits"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "ZodexNL",
+                    "email": "zodexnl@gmail.com"
+                }
+            ],
+            "description": "Use the Spatie permission package in Vue with Inertia",
+            "support": {
+                "source": "https://github.com/ZodexNL/spatie-permission-to-vue-inertia/tree/v1.0.1"
+            },
+            "time": "2023-05-16T17:58:49+00:00"
         }
     ],
     "packages-dev": [

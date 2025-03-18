@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Response as symfonyResponse;
 use App\Http\Requests\Post\StorePostRequest;
 use App\Http\Requests\Post\UpdatePostRequest;
 use App\Contracts\PictureServiceInterface;
+use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
@@ -25,10 +26,29 @@ class PostController extends Controller
 
     public function index(): Response
     {
-        $posts = Post::with('tags')->paginate();
-        $tags = TagResource::collection(Tag::all());
-        $posts = PostResource::collection($posts);
-        return Inertia::render("Posts", compact("posts", "tags"));
+        if (Auth::check() && request()->routeIs('posts.index')) {
+            $query = Post::query()->with('tags');
+
+            if (!Auth::user()->hasRole('admin')) {
+                $query->currentUserPost();
+            }
+
+            $posts = $query->latest()->paginate();
+
+            return Inertia::render('Posts', [
+                'posts' => PostResource::collection($posts),
+                'tags' => TagResource::collection(Tag::all()),
+            ]);
+        } else {
+            $posts = Post::where('is_published', true)
+                ->where('status', 'approved')
+                ->latest()
+                ->paginate();
+
+            return Inertia::render('Posts', [
+                'posts' => PostResource::collection($posts),
+            ]);
+        }
     }
 
     public function store(StorePostRequest $request)
@@ -55,10 +75,21 @@ class PostController extends Controller
 
     public function show(Post $post): Response
     {
-        $post->load('tags');
-        return Inertia::render("posts/show", [
-            "post" => $post
-        ]);
+        if (Auth::check() && request()->routeIs('posts.show')) {
+            $post->load('tags');
+
+            return Inertia::render("posts/show", [
+                "post" => PostResource::make($post),
+            ]);
+        } else {
+            if (!$post->is_published || $post->status !== 'approved') {
+                abort(404);
+            }
+
+            return Inertia::render('posts/show', [
+                'post' => PostResource::make($post->load('tags')),
+            ]);
+        }
     }
 
     public function update(UpdatePostRequest $request, Post $post)
@@ -77,6 +108,14 @@ class PostController extends Controller
         if ($request->has('tags')) {
             $request['tags'] = json_decode($request['tags']);
             $post->tags()->sync($request['tags']);
+        }
+
+        if ($request->has('status')) {
+            $post->status = $request['status'];
+        }
+
+        if ($request->has('is_published')) {
+            $post->is_published = $request['is_published'];
         }
 
         $post->save();

@@ -19,21 +19,24 @@ const cardItems: CardItem[] = [
         description: "Active users in the system",
         icon: Users,
         count: props.count.users,
-        route: "/users"
+        route: "/users",
+        access: "admin"
     },
     {
         title: "Posts",
         description: "Published content items",
         icon: FileText,
         count: props.count.posts,
-        route: "/posts"
+        route: "/posts",
+        access: "admin | user"
     },
     {
         title: "Tags",
         description: "Content categorization tags",
         icon: Tag,
         count: props.count.tags,
-        route: "/tags"
+        route: "/tags",
+        access: "user"
     }
 ];
 

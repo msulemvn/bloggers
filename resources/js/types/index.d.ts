@@ -16,7 +16,7 @@ export interface NavItem {
   title: string;
   href: string;
   icon?: LucideIcon;
-  isActive?: boolean;
+  role?: string;
 }
 
 export interface SharedData extends PageProps {
@@ -40,6 +40,7 @@ export interface CardItem {
   icon?: LucideIcon;
   count: number;
   route: url;
+  access: string;
 }
 
 type PaginationLink = {
@@ -78,3 +79,17 @@ type TagsResponse = {
   meta: PaginationMeta;
   links: PaginationLink[];
 };
+
+type Post = {
+  data: {
+    id: number;
+    title: string;
+    slug: string;
+    user_id: number;
+    content: string;
+    feature_image: string | null;
+    is_published: number;
+    status: string;
+    tags: Array<{ id: number; title: string }>;
+  };
+}

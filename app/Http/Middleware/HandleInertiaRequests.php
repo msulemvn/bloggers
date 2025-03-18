@@ -50,6 +50,7 @@ class HandleInertiaRequests extends Middleware
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
             ],
+            'permissions' => json_decode(auth()->check() ? auth()->user()->jsPermissions() : '{}', true),
         ];
     }
 }
