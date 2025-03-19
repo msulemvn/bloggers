@@ -8,6 +8,7 @@ use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Post extends Model
 {
@@ -50,5 +51,10 @@ class Post extends Model
     public function tags()
     {
         return $this->belongsToMany(Tag::class)->withTimestamps();
+    }
+
+    public function comments(): MorphMany
+    {
+        return $this->morphMany(Comment::class, 'commentable');
     }
 }

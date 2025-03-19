@@ -18,7 +18,8 @@
     import { Checkbox } from '@/components/ui/checkbox';
     import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
     import { route } from 'ziggy-js';
-    import { Switch } from '@/components/ui/switch'
+    import { Switch } from '@/components/ui/switch';
+    import PostHeader from '@/components/PostHeader.vue';
 
     const { toast } = useToast();
 
@@ -27,7 +28,7 @@
             ? [{ title: 'Posts', href: '/posts' }]
             : [{ title: 'Feed', href: '/feed' }];
     });
-    const props = defineProps<{ posts: any, tags: any }>();
+    const props = defineProps<{ posts: any, tags: any, auth: any }>();
 
     const tagOptions = computed(() => {
         if (props.tags && Array.isArray(props.tags.data)) {
@@ -231,12 +232,16 @@
     const toggleApproval = async (post, value) => {
         try {
             const status = value ? 'approved' : 'disapproved';
+            const shouldPublish = status === 'disapproved' ? false : post.is_published;
 
             await axios.put(route('posts.update', post.slug), {
-                status: status
+                status: status,
+                is_published: shouldPublish
             });
 
             post.status = status;
+            post.is_published = shouldPublish;
+
             toast({ description: `Post ${status === 'approved' ? 'approved' : 'disapproved'} successfully` });
 
         } catch (error) {
@@ -263,26 +268,14 @@
 </script>
 
     <template>
-        <div v-if="!$page.props.auth.user"
+        <div v-if="!props.auth.user"
             class="flex flex-col items-center bg-[#FDFDFC] p-4 text-[#1b1b18] dark:bg-[#0a0a0a] lg:justify-start">
-            <header class="not-has-[nav]:hidden mb-4 w-full max-w-[335px] text-sm lg:max-w-4xl">
-                <nav class="flex items-center justify-end gap-4">
-                    <Link :href="route('login')"
-                        class="inline-block rounded-sm border border-transparent px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#19140035] dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A]">
-                    Log in
-                    </Link>
-                    <Link :href="route('register')"
-                        class="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]">
-                    Register
-                    </Link>
-                </nav>
-            </header>
+            <PostHeader :showNav="!props.auth.user" />
         </div>
 
         <Head title="Posts" />
-        <component :is="$page.props.auth.user ? AppLayout : 'div'"
-            :breadcrumbs="$page.props.auth.user ? breadcrumbs : undefined">
-            <div class="container mx-auto">
+        <component :is="props.auth.user ? AppLayout : 'div'" :breadcrumbs="props.auth.user ? breadcrumbs : undefined">
+            <div class="container p-4">
                 <div class="flex items-center justify-end py-4 space-x-2">
                     <Button size="sm" @click="handleCreateClick"
                         v-if="route().current('posts.index') && can('create:posts')">
@@ -291,19 +284,19 @@
                     </Button>
                 </div>
                 <template v-if="!hasNoPosts">
-                    <div class="grid gap-4">
+                    <div
+                        :class="['grid gap-4 container lg:max-w-screen-sm', { 'mx-auto': route().current() === 'feed.index' || !props.auth.user }]">
                         <Card v-for="post in posts.data" :key="post.id"
                             class="cursor-pointer select-none shadow-sm shadow-black/10 transition-shadow hover:shadow-md hover:shadow-black/20">
 
-                            <Link v-if="!$page.props.auth.user || can('view:posts')"
+                            <Link v-if="!props.auth.user || can('view:posts')"
                                 :href="route(route().current() === 'feed.index' ? 'feed.show' : 'posts.show', post.slug)">
-                            <CardHeader>{{ post.title }}</CardHeader>
-                            <CardContent>
-                                <div v-if="post.feature_image" class="w-full h-48 overflow-hidden rounded-lg border">
+                            <CardHeader class="font-medium">{{ post.title }}</CardHeader>
+                            <CardContent v-if="route().current() === 'feed.index'">
+                                <div v-if="post.feature_image" class="overflow-hidden rounded-lg">
                                     <img :src="post.feature_image" alt="Feature Image"
-                                        class="w-full h-full object-cover" />
+                                        class="block h-post-card-image bg-cover bg-center bg-no-repeat w-full h-48 mb-5 object-cover" />
                                 </div>
-                                <div v-html="post.content" class="mt-3"></div>
                                 <div v-if="post.tags && post.tags.length" class="mt-3 flex flex-wrap gap-2">
                                     <span v-for="tag in post.tags" :key="getTagKey(tag)"
                                         class="px-2 py-1 bg-gray-200 text-gray-700 text-sm rounded">
@@ -330,9 +323,8 @@
                                     </div>
                                 </CardContent>
                             </div>
-
                             <CardFooter class="flex flex-wrap gap-4 items-center justify-start p-4"
-                                v-if="route().current('posts.index') && $page.props.auth.user">
+                                v-if="route().current('posts.index') && props.auth.user">
                                 <Button size="sm" @click="handleEdit(post)" v-if="is('user')">Edit</Button>
                                 <Button size="sm" variant="destructive" @click="handleDelete(post)">Delete</Button>
                                 <div class="flex items-center gap-2" v-if="can('approve:posts')">
@@ -346,12 +338,12 @@
                                         </template>
                                     </Switch>
                                 </div>
-
                                 <div class="flex items-center gap-2" v-if="can('publish:posts')">
                                     <Label for="publish-switch" class="font-medium text-sm">Publish</Label>
                                     <Switch id="publish-switch" :model-value="post.is_published"
                                         @update:model-value="(val) => togglePublish(post, val)"
-                                        aria-label="Publish post">
+                                        aria-label="Publish post"
+                                        :disabled="(post.status == 'disapproved' && !can('approve:posts')) || (post.status == 'disapproved' && can('approve:posts'))">
                                         <template #thumb>
                                             <Icon :icon="post.is_published ? 'lucide:eye' : 'lucide:eye-off'"
                                                 class="size-3" aria-hidden="true" />
@@ -363,7 +355,7 @@
                     </div>
                 </template>
                 <div v-else class="text-center py-8 text-gray-500">
-                    No posts available. Create your first post!
+                    No posts available.
                 </div>
             </div>
 

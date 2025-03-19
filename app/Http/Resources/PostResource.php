@@ -18,6 +18,7 @@ class PostResource extends JsonResource
             "is_published" => $this->is_published,
             "status" => $this->status,
             'tags' => TagResource::collection($this->whenLoaded('tags')),
+            'comments' => CommentResource::collection($this->whenLoaded('comments')),
         ];
     }
 }

@@ -9,6 +9,7 @@ use App\Models\ActivityLog;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\DTO\ErrorLog\StoreErrorLogDTO;
 use App\DTO\ActivityLog\StoreActivityLogDTO;
+use Illuminate\Support\Str;
 
 if (!function_exists('apiResponse')) {
     function apiResponse(

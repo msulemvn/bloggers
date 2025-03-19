@@ -91,5 +91,6 @@ type Post = {
     is_published: number;
     status: string;
     tags: Array<{ id: number; title: string }>;
+    comments: any;
   };
 }

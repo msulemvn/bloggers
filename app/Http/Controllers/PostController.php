@@ -24,10 +24,14 @@ class PostController extends Controller
         $this->pictureService = $pictureService;
     }
 
-    public function index(): Response
+    public function index()
     {
+        if (Auth::check() && !request()->routeIs('posts.index', 'feed.index')) {
+            return redirect()->route('feed.index');
+        }
+
         if (Auth::check() && request()->routeIs('posts.index')) {
-            $query = Post::query()->with('tags');
+            $query = Post::query()->with(['tags', 'comments.user', 'comments.replies']);
 
             if (!Auth::user()->hasRole('admin')) {
                 $query->currentUserPost();
@@ -77,6 +81,7 @@ class PostController extends Controller
     {
         if (Auth::check() && request()->routeIs('posts.show')) {
             $post->load('tags');
+            $post->load('comments');
 
             return Inertia::render("posts/show", [
                 "post" => PostResource::make($post),
@@ -87,7 +92,7 @@ class PostController extends Controller
             }
 
             return Inertia::render('posts/show', [
-                'post' => PostResource::make($post->load('tags')),
+                'post' => PostResource::make($post->load(['tags', 'comments.user', 'comments.replies'])),
             ]);
         }
     }
@@ -107,7 +112,6 @@ class PostController extends Controller
 
         if ($request->has('tags')) {
             $request['tags'] = json_decode($request['tags']);
-            $post->tags()->sync($request['tags']);
         }
 
         if ($request->has('status')) {
@@ -127,9 +131,6 @@ class PostController extends Controller
 
     public function destroy(Request $request, Post $post)
     {
-        if (!$post) {
-            return apiResponse(errors: ["id" => ["Post not found"]], statusCode: symfonyResponse::HTTP_NOT_FOUND);
-        }
         $post->tags()->sync([]);
         $post->delete();
 

@@ -10,6 +10,12 @@ import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
     {
+        title: 'Feed',
+        href: '/feed',
+        icon: Rss,
+        role: 'user'
+    },
+    {
         title: 'Dashboard',
         href: '/dashboard',
         icon: LayoutGrid,
@@ -20,12 +26,6 @@ const mainNavItems: NavItem[] = [
         href: '/users',
         icon: Users,
         role: 'admin'
-    },
-    {
-        title: 'Feed',
-        href: '/feed',
-        icon: Rss,
-        role: 'user'
     },
     {
         title: 'Posts',
