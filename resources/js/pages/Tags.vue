@@ -154,7 +154,7 @@
 
         <Head title="Tags" />
         <AppLayout :breadcrumbs="breadcrumbs">
-            <div class="container p-4">
+            <div class="container mx-auto py-6">
                 <div class="flex justify-between items-center mb-6">
                     <h1 class="text-2xl font-bold">Tags</h1>
                     <div class="flex items-center justify-end py-4 space-x-2">

@@ -1,7 +1,7 @@
     <script setup lang="ts">
     import AppLayout from '@/layouts/AppLayout.vue';
     import { type BreadcrumbItem, type Tag } from '@/types';
-    import { Head, Link } from '@inertiajs/vue3';
+    import { Head, Link, router } from '@inertiajs/vue3';
     import { ref, computed, watch } from 'vue';
     import { Button } from '@/components/ui/button';
     import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -19,15 +19,17 @@
     import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
     import { route } from 'ziggy-js';
     import { Switch } from '@/components/ui/switch';
-    import PostHeader from '@/components/PostHeader.vue';
+    import Header from '@/components/Header.vue';
+    import CardTitle from '@/components/ui/card/CardTitle.vue';
 
     const { toast } = useToast();
 
-    const breadcrumbs = computed<BreadcrumbItem[]>(() => {
-        return route().current('posts.index')
-            ? [{ title: 'Posts', href: '/posts' }]
-            : [{ title: 'Feed', href: '/feed' }];
-    });
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: 'Posts',
+            href: '/posts',
+        },
+    ];
     const props = defineProps<{ posts: any, tags: any, auth: any }>();
 
     const tagOptions = computed(() => {
@@ -268,63 +270,31 @@
 </script>
 
     <template>
-        <div v-if="!props.auth.user"
-            class="flex flex-col items-center bg-[#FDFDFC] p-4 text-[#1b1b18] dark:bg-[#0a0a0a] lg:justify-start">
-            <PostHeader :showNav="!props.auth.user" />
+        <div class="flex flex-col items-center bg-[#FDFDFC] p-4 text-[#1b1b18] dark:bg-[#0a0a0a] lg:justify-start">
+            <Header :showNav="!route().current('posts.index')" :authenticated="props.auth.user" />
         </div>
 
         <Head title="Posts" />
-        <component :is="props.auth.user ? AppLayout : 'div'" :breadcrumbs="props.auth.user ? breadcrumbs : undefined">
-            <div class="container p-4">
-                <div class="flex items-center justify-end py-4 space-x-2">
-                    <Button size="sm" @click="handleCreateClick"
-                        v-if="route().current('posts.index') && can('create:posts')">
+        <component :is="props.auth.user && route().current('posts.index') ? AppLayout : 'div'"
+            :breadcrumbs="props.auth.user ? breadcrumbs : undefined">
+            <div class="container mx-auto py-6">
+                <div class="flex items-center justify-end py-4 space-x-2"
+                    v-if="route().current('posts.index') && can('create:posts')">
+                    <Button size="sm" @click="handleCreateClick">
                         <Plus class="w-5 h-5" />
                         Create Post
                     </Button>
                 </div>
                 <template v-if="!hasNoPosts">
-                    <div
-                        :class="['grid gap-4 container lg:max-w-screen-sm', { 'mx-auto': route().current() === 'feed.index' || !props.auth.user }]">
-                        <Card v-for="post in posts.data" :key="post.id"
-                            class="cursor-pointer select-none shadow-sm shadow-black/10 transition-shadow hover:shadow-md hover:shadow-black/20">
-
-                            <Link v-if="!props.auth.user || can('view:posts')"
-                                :href="route(route().current() === 'feed.index' ? 'feed.show' : 'posts.show', post.slug)">
-                            <CardHeader class="font-medium">{{ post.title }}</CardHeader>
-                            <CardContent v-if="route().current() === 'feed.index'">
-                                <div v-if="post.feature_image" class="overflow-hidden rounded-lg">
-                                    <img :src="post.feature_image" alt="Feature Image"
-                                        class="block h-post-card-image bg-cover bg-center bg-no-repeat w-full h-48 mb-5 object-cover" />
-                                </div>
-                                <div v-if="post.tags && post.tags.length" class="mt-3 flex flex-wrap gap-2">
-                                    <span v-for="tag in post.tags" :key="getTagKey(tag)"
-                                        class="px-2 py-1 bg-gray-200 text-gray-700 text-sm rounded">
-                                        {{ tag.title }}
-                                    </span>
-                                </div>
-                            </CardContent>
+                    <Card
+                        class="select-none shadow-sm shadow-black/10 transition-shadow hover:shadow-md hover:shadow-black/20 mb-4"
+                        v-for="post in posts.data" :key="post.id"
+                        v-if="route().current('posts.index') && props.auth.user">
+                        <CardHeader>
+                            <Link :href="'posts/' + post.slug">
+                            <CardTitle>{{ post.title }}</CardTitle>
                             </Link>
-
-                            <div v-else class="block opacity-50 cursor-not-allowed">
-                                <CardHeader>{{ post.title }}</CardHeader>
-                                <CardContent>
-                                    <div v-if="post.feature_image"
-                                        class="w-full h-48 overflow-hidden rounded-lg border">
-                                        <img :src="post.feature_image" alt="Feature Image"
-                                            class="w-full h-full object-cover" />
-                                    </div>
-                                    <div v-html="post.content" class="mt-3"></div>
-                                    <div v-if="post.tags && post.tags.length" class="mt-3 flex flex-wrap gap-2">
-                                        <span v-for="tag in post.tags" :key="getTagKey(tag)"
-                                            class="px-2 py-1 bg-gray-200 text-gray-700 text-sm rounded">
-                                            {{ tag.title }}
-                                        </span>
-                                    </div>
-                                </CardContent>
-                            </div>
-                            <CardFooter class="flex flex-wrap gap-4 items-center justify-start p-4"
-                                v-if="route().current('posts.index') && props.auth.user">
+                            <CardFooter class="flex flex-wrap gap-4 items-center justify-end p-4">
                                 <Button size="sm" @click="handleEdit(post)" v-if="is('user')">Edit</Button>
                                 <Button size="sm" variant="destructive" @click="handleDelete(post)">Delete</Button>
                                 <div class="flex items-center gap-2" v-if="can('approve:posts')">
@@ -343,7 +313,7 @@
                                     <Switch id="publish-switch" :model-value="post.is_published"
                                         @update:model-value="(val) => togglePublish(post, val)"
                                         aria-label="Publish post"
-                                        :disabled="(post.status == 'disapproved' && !can('approve:posts')) || (post.status == 'disapproved' && can('approve:posts'))">
+                                        :disabled="(post.status == 'disapproved' && !can('approve:posts'))">
                                         <template #thumb>
                                             <Icon :icon="post.is_published ? 'lucide:eye' : 'lucide:eye-off'"
                                                 class="size-3" aria-hidden="true" />
@@ -351,7 +321,37 @@
                                     </Switch>
                                 </div>
                             </CardFooter>
-                        </Card>
+                        </CardHeader>
+                    </Card>
+                    <div v-else class="container mx-auto lg:max-w-screen-sm mt-20">
+                        <div class="flex flex-wrap items-center justify-between gap-x-8 gap-y-3">
+                            <h2 class="text-3xl font-bold sm:text-4xl lg:text-[40px]">The latest</h2>
+                        </div>
+
+                        <div class="mt-12 grid gap-x-8 gap-y-12 lg:grid-cols-3">
+                            <div v-for="article in posts.data" :key="article.slug" class="group relative">
+                                <div
+                                    class="aspect-[2/1] w-full rounded-lg bg-gray-100 shadow-card transition group-hover:opacity-80">
+                                    <img :src="article.feature_image" :alt="article.title + ' image'"
+                                        class="h-full w-full rounded-lg object-cover" loading="lazy" />
+                                </div>
+
+                                <h3 class="mt-4 text-xl font-bold transition group-hover:text-red-600 sm:text-2xl">
+                                    {{ article.title }}
+                                </h3>
+
+                                <Link
+                                    class="inline-flex rounded-sm transition duration-300 leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600/80 absolute inset-0 !block h-full w-full !rounded-lg"
+                                    :href="'posts/' + article.slug">
+                                <span class="sr-only">Read article</span>
+                                </Link>
+
+                                <a class="inline-flex rounded-sm transition duration-300 leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600/80 absolute inset-0 !block h-full w-full !rounded-lg"
+                                    :href="'posts/' + article.slug" rel="noopener">
+                                    <span class="sr-only">Read article</span>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </template>
                 <div v-else class="text-center py-8 text-gray-500">
@@ -418,7 +418,7 @@
                                                             @update:checked="toggleTag(tag)" />
                                                         <label :for="'tag-' + getTagKey(tag)" class="text-sm">{{
                                                             tag.title
-                                                            }}</label>
+                                                        }}</label>
                                                     </div>
                                                 </div>
                                                 <div v-else class="text-sm text-gray-500 text-center py-2">

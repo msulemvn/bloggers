@@ -10,12 +10,6 @@ import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
     {
-        title: 'Feed',
-        href: '/feed',
-        icon: Rss,
-        role: 'user'
-    },
-    {
         title: 'Dashboard',
         href: '/dashboard',
         icon: LayoutGrid,
@@ -57,7 +51,7 @@ const footerNavItems: NavItem[] = [
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
-                        <Link :href="route('dashboard')">
+                        <Link :href="route('home')">
                         <AppLogo />
                         </Link>
                     </SidebarMenuButton>

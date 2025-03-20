@@ -26,10 +26,6 @@ class PostController extends Controller
 
     public function index()
     {
-        if (Auth::check() && !request()->routeIs('posts.index', 'feed.index')) {
-            return redirect()->route('feed.index');
-        }
-
         if (Auth::check() && request()->routeIs('posts.index')) {
             $query = Post::query()->with(['tags', 'comments.user', 'comments.replies']);
 
@@ -72,6 +68,7 @@ class PostController extends Controller
             $data['tags'] = json_decode($data['tags']);
             $post->tags()->sync($data['tags']);
         }
+        $post->refresh();
 
         logActivity(request: $request, description: "User created a new post", showable: true);
         return apiResponse(message: "Post added successfully", data: PostResource::make($post), statusCode: symfonyResponse::HTTP_CREATED);
@@ -80,11 +77,9 @@ class PostController extends Controller
     public function show(Post $post): Response
     {
         if (Auth::check() && request()->routeIs('posts.show')) {
-            $post->load('tags');
-            $post->load('comments');
 
             return Inertia::render("posts/show", [
-                "post" => PostResource::make($post),
+                "post" => PostResource::make($post->load(['tags', 'comments.user', 'comments.replies'])),
             ]);
         } else {
             if (!$post->is_published || $post->status !== 'approved') {

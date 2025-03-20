@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Post } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
@@ -9,23 +8,59 @@ import { QuillyEditor } from 'vue-quilly';
 import 'quill/dist/quill.core.css';
 import 'quill/dist/quill.snow.css';
 import 'quill/dist/quill.bubble.css';
-import PostHeader from '@/components/PostHeader.vue';
+import PostHeader from '@/components/Header.vue';
 import axios from 'axios';
 import { useToast } from '@/components/ui/toast/use-toast';
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { Link } from "@inertiajs/vue3";
 
 const { toast } = useToast();
 
-const props = defineProps<{
+interface Author {
+    name: string;
+    username: string;
+    bio: string;
+    photo: string;
+    twitter?: string;
+    github?: string;
+}
+
+// Define the Post interface based on your app's requirements
+interface Post {
+    // Add your post properties here
+    id?: number;
+    title?: string;
+    // other properties...
+}
+
+// Define props with TypeScript and default values
+const props = withDefaults(defineProps<{
     post: Post;
     auth: any;
-}>();
+    author: Author;
+}>(), {
+    author: () => ({
+        name: 'Yaz Jallad',
+        username: 'ninjaparade',
+        bio: 'Yaz is a full stack developer with a passion for everything Laravel, React, TypeScript Tailwind CSS and Inertia.js.',
+        photo: 'https://laravel-news.com/storage/profile-photos/fg5RHQiXXEXoGki2AHm8LTHnDK2zVhZuOgFhwViq.jpg',
+        twitter: '@ninjaparade',
+        github: 'ninjaparade'
+    })
+});
+
+// Helper function to get initials for avatar fallback
+const getInitials = (name: string): string => {
+    return name
+        .split(' ')
+        .map(part => part.charAt(0))
+        .join('')
+        .toUpperCase();
+}
 
 const breadcrumbs: BreadcrumbItem[] = [
-    ...(route().current() === 'feed.show'
-        ? [{ title: 'Feed', href: '/feed' }]
-        : [{ title: 'Posts', href: '/posts' }]
-    ),
-    { title: props.post.data.slug, href: '' },
+    { title: 'Posts', href: '/posts' },
+    { title: props.post.data.slug, href: '' }
 ];
 
 const options = {
@@ -191,27 +226,24 @@ onMounted(() => {
 </script>
 
 <template>
-    <div v-if="!props.auth.user"
-        class="flex flex-col items-center bg-[#FDFDFC] p-4 text-[#1b1b18] dark:bg-[#0a0a0a] lg:justify-start">
-        <PostHeader :showNav="!props.auth.user" />
+    <div class="flex flex-col items-center bg-[#FDFDFC] p-4 text-[#1b1b18] dark:bg-[#0a0a0a] lg:justify-start">
+        <PostHeader :showNav="true" :authenticated="props.auth.user" />
     </div>
 
     <Head :title="props.post.data.title" />
 
-    <component :is="props.auth.user ? AppLayout : 'div'" :breadcrumbs="props.auth.user ? breadcrumbs : undefined"
-        :class="!props.auth.user ? 'container mx-auto px-5 lg:max-w-screen-sm mt-20' : ''">
-        <div class="flex flex-1 flex-col gap-6 p-6">
+    <div :breadcrumbs="props.auth.user ? breadcrumbs : undefined" class="container mx-auto lg:max-w-screen-sm mt-20">
+        <div class="flex flex-1 flex-col gap-6">
             <h1 class="text-3xl font-bold mb-4">{{ props.post.data.title }}</h1>
 
-            <Card class="w-full overflow-hidden">
+            <Card class="w-full overflow-hidden border-0">
                 <CardHeader v-if="props.post.data.feature_image" class="my-5 p-0">
-                    <img :src="props.post.data.feature_image" alt="Feature Image" class="w-full h-96 object-cover" />
+                    <img :src="props.post.data.feature_image" alt="Feature Image" class="w-full h-96 object-fit" />
                 </CardHeader>
 
                 <CardContent>
-                    <QuillyEditor class="min-h-[10vh] border"
-                        v-if="route().current('posts.show') && props.auth.user && props.auth.user.id == props.post.data.user_id"
-                        ref="editor" v-model="model" :options="options"
+                    <QuillyEditor class="min-h-[10vh] border" ref="editor" v-model="model" :options="options"
+                        v-if="props.auth.user && props.auth.user.id == props.post.data.user_id"
                         @update:modelValue="(value) => console.log('HTML model updated:', value)"
                         @text-change="({ delta, oldContent, source }) => console.log('text-change', delta, oldContent, source)"
                         @selection-change="({ range, oldRange, source }) => console.log('selection-change', range, oldRange, source)"
@@ -230,9 +262,48 @@ onMounted(() => {
                     </div>
                 </CardFooter>
             </Card>
+            <Card class="p-6">
+                <div class="flex flex-col items-start space-y-4 sm:flex-row sm:space-x-6 sm:space-y-0">
+                    <Avatar class="h-20 w-20 !rounded-sm">
+                        <AvatarImage :src="author.photo" :alt="`${author.name} photo`" />
+                        <AvatarFallback>{{ getInitials(author.name) }}</AvatarFallback>
+                    </Avatar>
+
+                    <div>
+                        <p class="font-display text-2xl font-bold leading-none text-black" itemprop="author">
+                            <Link
+                                class="inline-flex rounded-sm transition duration-300 leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600/80"
+                                :href="'/@' + author.username" rel="author">
+                            {{ author.name }}
+                            </Link>
+                        </p>
+                        <div
+                            class="prose prose-sm mt-2 text-gray-600 prose-a:text-red-600 prose-a:transition prose-a:hover:text-red-700">
+                            <p>{{ author.bio }}</p>
+                        </div>
+                        <div class="mt-4 flex gap-2">
+                            <Link v-if="author.twitter"
+                                class="inline-flex h-5 w-5 items-center justify-center !rounded-full transition duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600/80 hover:opacity-80"
+                                :href="'https://twitter.com/' + author.twitter" target="_blank"
+                                rel="noopener noreferrer">
+                            <img class="h-4 w-4" src="https://picperf.io/https://laravel-news.com/images/x.svg"
+                                loading="lazy" alt="X" />
+                            <span class="sr-only">X</span>
+                            </Link>
+                            <Link v-if="author.github"
+                                class="inline-flex h-5 w-5 items-center justify-center !rounded-full transition duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600/80 hover:opacity-80"
+                                :href="'https://github.com/' + author.github" target="_blank" rel="noopener noreferrer">
+                            <img class="h-4 w-4" src="https://picperf.io/https://laravel-news.com/images/github.svg"
+                                loading="lazy" alt="GitHub" />
+                            <span class="sr-only">GitHub</span>
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </Card>
         </div>
 
-        <Card v-if="!route().current('posts.show') && props.auth.user" class="w-full mt-6">
+        <Card v-if="props.auth.user" class="w-full mt-6">
             <CardHeader>
                 <h2 class="text-xl font-semibold">Comments ({{ totalComments }})</h2>
             </CardHeader>
@@ -324,9 +395,13 @@ onMounted(() => {
             </CardContent>
         </Card>
 
-        <div v-else-if="!props.auth.user" class="mt-6 p-4 bg-muted rounded-md text-center">
-            <p class="text-muted-foreground">Please <a href="/login" class="text-primary hover:underline">log in</a> to
-                leave a comment</p>
+        <div v-else-if="!props.auth.user"
+            class="mt-6 p-6 text-center border border-dashed border-muted rounded-lg bg-muted/50">
+            <p class="text-md text-muted-foreground">
+                Please
+                <a href="/login" class="text-primary font-medium hover:underline">log in</a>
+                to leave a comment.
+            </p>
         </div>
-    </component>
+    </div>
 </template>
