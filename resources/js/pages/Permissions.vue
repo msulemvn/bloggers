@@ -72,6 +72,7 @@ const saveUserRoles = () => {
     });
 };
 
+const selectedRole = ref<string>(Object.keys(adminPermissions.value)[0] || '');
 const userSearch = ref('');
 const roleSearch = ref('');
 
@@ -111,7 +112,7 @@ const is = (roleName: string) => {
 
     <Head title="Permissions" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div v-if="!is('admin')" class="flex w-full flex-col gap-4 rounded-xl mx-auto p-6">
+        <div v-if="!is('admin')" class="flex flex-col gap-4 rounded-xl mx-auto p-6">
             <Card>
                 <CardHeader>
                     <CardTitle class="text-xl font-semibold">Your Role & Permissions</CardTitle>
@@ -135,7 +136,7 @@ const is = (roleName: string) => {
         </div>
         <div v-else class="container mx-auto py-6">
             <h1 class="text-2xl font-bold mb-6">Assign Roles to Accounts</h1>
-            <Input v-model="userSearch" placeholder="Search users..." class="mb-4" />
+            <Input v-model="userSearch" placeholder="Search users..." class="mb-4 w-auto" />
             <Card class="mb-10">
                 <CardContent class="p-6">
                     <ScrollArea class="h-28 pr-4">
@@ -165,36 +166,49 @@ const is = (roleName: string) => {
             </div>
 
             <h1 class="text-2xl font-bold mb-6">Change Permissions for Roles</h1>
-
-            <Input v-model="roleSearch" placeholder="Search roles..." class="mb-4" />
-            <ScrollArea class="h-72 pr-4 overflow-auto">
-                <Card v-for="role in filteredRoles" :key="role" class="mb-10">
-                    <CardHeader class="pb-4">
-                        <CardTitle class="text-xl font-semibold capitalize">{{ role }}</CardTitle>
-                    </CardHeader>
-                    <CardContent class="p-6">
-                        <div class="space-y-8">
-                            <div v-for="(permissionList, entity, index) in allPermissionsByEntity" :key="entity">
-                                <h3 class="text-lg font-semibold capitalize mb-3">{{ entity }}</h3>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-5 gap-x-6 pl-4">
-                                    <div v-for="permission in permissionList" :key="permission"
-                                        class="flex items-center space-x-3">
-                                        <Checkbox :id="`${role}-${permission}`"
-                                            :checked="adminPermissions[role].includes(permission)"
-                                            @update:checked="() => togglePermission(role, permission)" />
-                                        <label :for="`${role}-${permission}`" class="text-sm leading-none">
-                                            {{ permission.split(':')[0] }}
-                                        </label>
+            <div class="mb-4">
+                <Select v-model="selectedRole">
+                    <SelectTrigger p-tclass="w-[200px]" class="w-1/6">
+                        <SelectValue :placeholder="selectedRole || 'Select Role'" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem v-for="role in Object.keys(adminPermissions)" :key="role" :value="role">
+                            {{ role }}
+                        </SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+            <div>
+                <ScrollArea
+                    class="h-80 pr-4 overflow-auto mt-1 py-1 mb-10 rounded-lg border bg-card text-card-foreground shadow-sm">
+                    <Card v-if="selectedRole" class="border-0">
+                        <CardHeader class="pb-4">
+                            <CardTitle class="text-xl font-semibold capitalize">{{ selectedRole }}</CardTitle>
+                        </CardHeader>
+                        <CardContent class="p-6">
+                            <div class="space-y-8">
+                                <div v-for="(permissionList, entity, index) in allPermissionsByEntity" :key="entity">
+                                    <h3 class="text-lg font-semibold capitalize mb-3">{{ entity }}</h3>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-5 gap-x-6 pl-4">
+                                        <div v-for="permission in permissionList" :key="permission"
+                                            class="flex items-center space-x-3">
+                                            <Checkbox :id="`${selectedRole}-${permission}`"
+                                                :checked="adminPermissions[selectedRole]?.includes(permission)"
+                                                @update:checked="() => togglePermission(selectedRole, permission)" />
+                                            <label :for="`${selectedRole}-${permission}`" class="text-sm leading-none">
+                                                {{ permission.split(':')[0] }}
+                                            </label>
+                                        </div>
                                     </div>
+                                    <Separator v-if="index < Object.entries(allPermissionsByEntity).length - 1"
+                                        class="mt-6" />
                                 </div>
-                                <Separator v-if="index < Object.entries(allPermissionsByEntity).length - 1"
-                                    class="mt-6" />
                             </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </ScrollArea>
-            <div class="flex justify-end">
+                        </CardContent>
+                    </Card>
+                </ScrollArea>
+            </div>
+            <div class="flex justify-end p-4">
                 <Button @click="savePermissions" size="lg" class="px-8 py-3 text-base">
                     Save Permissions
                 </Button>

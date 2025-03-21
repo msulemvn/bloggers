@@ -58,6 +58,7 @@
 
     const formSchema = toTypedSchema(z.object({
         title: z.string().min(1, 'Title is required').max(255, 'Title must be 255 characters or less'),
+        description: z.string().min(1, 'Description is required').max(255, 'Description must be 255 characters or less'),
         content: z.string().min(1, 'Content is required'),
         feature_image: z.union([
             z.instanceof(File).refine((file) => file.size <= 5 * 1024 * 1024, { message: 'Image must be less than 5MB' })
@@ -70,6 +71,7 @@
 
     const defaultPostValues = computed(() => ({
         title: '',
+        description: '',
         content: '',
         feature_image: undefined,
     }));
@@ -175,6 +177,7 @@
 
         const formData = new FormData();
         formData.append('title', values.title);
+        formData.append('description', values.description);
         formData.append('content', values.content);
 
         if (values.feature_image instanceof File) {
@@ -290,35 +293,46 @@
                         class="select-none shadow-sm shadow-black/10 transition-shadow hover:shadow-md hover:shadow-black/20 mb-4"
                         v-for="post in posts.data" :key="post.id"
                         v-if="route().current('posts.index') && props.auth.user">
-                        <CardHeader>
+                        <CardHeader class="!p-0">
                             <Link :href="'posts/' + post.slug">
-                            <CardTitle>{{ post.title }}</CardTitle>
+                            <CardTitle v-if="!route().current('posts.index')">{{ post.title }}</CardTitle>
+                            <CardDescription v-if="!route().current('posts.index')">{{ post.description
+                            }}
+                            </CardDescription>
                             </Link>
-                            <CardFooter class="flex flex-wrap gap-4 items-center justify-end p-4">
-                                <Button size="sm" @click="handleEdit(post)" v-if="is('user')">Edit</Button>
-                                <Button size="sm" variant="destructive" @click="handleDelete(post)">Delete</Button>
-                                <div class="flex items-center gap-2" v-if="can('approve:posts')">
-                                    <Label for="approve-switch" class="font-medium text-sm">Approve</Label>
-                                    <Switch id="approve-switch" :model-value="post.status === 'approved'"
-                                        @update:model-value="(val) => toggleApproval(post, val)"
-                                        aria-label="Approve post">
-                                        <template #thumb>
-                                            <Icon :icon="post.status === 'approved' ? 'lucide:check' : 'lucide:x'"
-                                                class="size-3" aria-hidden="true" />
-                                        </template>
-                                    </Switch>
-                                </div>
-                                <div class="flex items-center gap-2" v-if="can('publish:posts')">
-                                    <Label for="publish-switch" class="font-medium text-sm">Publish</Label>
-                                    <Switch id="publish-switch" :model-value="post.is_published"
-                                        @update:model-value="(val) => togglePublish(post, val)"
-                                        aria-label="Publish post"
-                                        :disabled="(post.status == 'disapproved' && !can('approve:posts'))">
-                                        <template #thumb>
-                                            <Icon :icon="post.is_published ? 'lucide:eye' : 'lucide:eye-off'"
-                                                class="size-3" aria-hidden="true" />
-                                        </template>
-                                    </Switch>
+                            <CardFooter class="flex flex-wrap items-center justify-between p-4 gap-4">
+                                <Link :href="'posts/' + post.slug">
+                                <h3 v-if="route().current('posts.index')"
+                                    class="text-2xl font-semibold tracking-tight max-w-3xl truncate">{{
+                                        post.title }}</h3>
+                                </Link>
+                                <div class="flex items-center gap-4">
+                                    <Button size="sm" @click="handleEdit(post)" v-if="is('user')">Edit</Button>
+                                    <Button size="sm" variant="destructive" @click="handleDelete(post)">Delete</Button>
+                                    <div class="flex items-center gap-2" v-if="can('approve:posts')">
+                                        <Label for="approve-switch" class="font-medium text-sm">Approve</Label>
+                                        <Switch id="approve-switch" :model-value="post.status === 'approved'"
+                                            @update:model-value="(val) => toggleApproval(post, val)"
+                                            aria-label="Approve post">
+                                            <template #thumb>
+                                                <Icon :icon="post.status === 'approved' ? 'lucide:check' : 'lucide:x'"
+                                                    class="size-3" aria-hidden="true" />
+                                            </template>
+                                        </Switch>
+                                    </div>
+
+                                    <div class="flex items-center gap-2" v-if="can('publish:posts')">
+                                        <Label for="publish-switch" class="font-medium text-sm">Publish</Label>
+                                        <Switch id="publish-switch" :model-value="post.is_published"
+                                            @update:model-value="(val) => togglePublish(post, val)"
+                                            aria-label="Publish post"
+                                            :disabled="(post.status == 'disapproved' && !can('approve:posts'))">
+                                            <template #thumb>
+                                                <Icon :icon="post.is_published ? 'lucide:eye' : 'lucide:eye-off'"
+                                                    class="size-3" aria-hidden="true" />
+                                            </template>
+                                        </Switch>
+                                    </div>
                                 </div>
                             </CardFooter>
                         </CardHeader>
@@ -339,16 +353,17 @@
                                 <h3 class="mt-4 text-xl font-bold transition group-hover:text-red-600 sm:text-2xl">
                                     {{ article.title }}
                                 </h3>
+                                <p class="mt-4 text-lg transition group-hover:text-red-600 sm:text-xl">
+                                    {{ article.description }}
+                                </p>
 
                                 <Link
                                     class="inline-flex rounded-sm transition duration-300 leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600/80 absolute inset-0 !block h-full w-full !rounded-lg"
                                     :href="'posts/' + article.slug">
-                                <span class="sr-only">Read article</span>
                                 </Link>
 
                                 <a class="inline-flex rounded-sm transition duration-300 leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600/80 absolute inset-0 !block h-full w-full !rounded-lg"
                                     :href="'posts/' + article.slug" rel="noopener">
-                                    <span class="sr-only">Read article</span>
                                 </a>
                             </div>
                         </div>
@@ -367,6 +382,16 @@
                                 <FormLabel>Title</FormLabel>
                                 <FormControl>
                                     <Input v-bind="componentField" placeholder="Enter post title" />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        </FormField>
+
+                        <FormField :validateOnBlur="false" v-slot="{ componentField }" name="description">
+                            <FormItem>
+                                <FormLabel>Description</FormLabel>
+                                <FormControl>
+                                    <Input v-bind="componentField" placeholder="Enter post description" />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

@@ -2,17 +2,23 @@
 import Header from '@/components/Header.vue';
 import PlaceholderPattern from '@/components/PlaceholderPattern.vue';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Link } from '@inertiajs/vue3';
+import { AspectRatio } from '@/components/ui/aspect-ratio'
+import { Button } from '@/components/ui/button'
+import {
+    Command,
+    CommandInput
+} from '@/components/ui/command'
+import { ref } from 'vue'
 
 const props = defineProps<{
     auth: any;
+    posts: any;
 }>();
 
-const cards = Array.from({ length: 15 }, (_, i) => ({
-    id: i + 1,
-    title: `Card Title ${i + 1}`,
-    description: "This is a short description of the card content.",
-    link: "#",
-}));
+const open = ref(false)
+const query = ref('')
+
 </script>
 
 <template>
@@ -28,26 +34,39 @@ const cards = Array.from({ length: 15 }, (_, i) => ({
         <div class="text-center">
             <h1 class="text-5xl font-bold sm:text-6xl">Bloggers</h1>
             <p class="mt-4 text-gray-600">All latest blogs</p>
+            <div class="flex items-center justify-end items-center p-4">
+                <Command class="rounded-lg border shadow-md max-w-sm mr-4 flex flex-row">
+                    <CommandInput placeholder="Search" class="w-full text-md" />
+                </Command>
+                <Button
+                    class="h-10 rounded-lg border border-transparent bg-red-600 leading-none text-white transition duration-300 ease-in-out hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600/80 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-red-600/50">Search</Button>
+            </div>
+
         </div>
     </section>
 
     <main class="flex-grow py-12 bg-white dark:bg-gray-950">
         <div class="max-w-7xl mx-auto px-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <Card v-for="card in cards" :key="card.id"
-                    class="overflow-hidden rounded-lg shadow-md transition-all duration-300 hover:shadow-xl hover:translate-y-[-4px]">
+                <Link v-for="card in props.posts.data" :key="card.id" :href="card.slug">
+                <Card
+                    class="group overflow-hidden rounded-lg shadow-md transition-all duration-300 hover:shadow-xl hover:translate-y-[-4px]">
                     <CardHeader class="!aspect-[2/1] w-full p-0 relative aspect-video overflow-hidden">
-                        <PlaceholderPattern class="w-full h-full" />
+                        <AspectRatio v-if="card.feature_image" :ratio="16 / 9">
+                            <img :src="card.feature_image" alt="Image" class="rounded-md object-cover w-full h-full">
+                        </AspectRatio>
+                        <PlaceholderPattern v-else class=" w-full h-full" />
                     </CardHeader>
                     <CardContent class="p-4">
                         <CardTitle class="text-xl font-bold transition group-hover:text-red-600 sm:text-2xl">
                             {{ card.title }}
                         </CardTitle>
-                        <CardDescription class="mt-3 max-w-2xl text-gray-600">
+                        <CardDescription class="mt-3 max-w-2xl text-gray-600 leading-none truncate">
                             {{ card.description }}
                         </CardDescription>
                     </CardContent>
                 </Card>
+                </Link>
             </div>
         </div>
     </main>

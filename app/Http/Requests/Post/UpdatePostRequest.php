@@ -10,6 +10,7 @@ class UpdatePostRequest extends BaseRequest
     {
         return [
             'title' => ['sometimes', 'string', 'max:255'],
+            'description' => ['sometimes', 'string', 'max:255'],
             'content' => ['sometimes', 'string'],
             'feature_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
             'status' => ['nullable', 'in:approved,disapproved'],

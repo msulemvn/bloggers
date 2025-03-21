@@ -16,6 +16,7 @@ class Post extends Model
     protected $fillable = [
         'user_id',
         'title',
+        'description',
         'content',
         'feature_image',
     ];
@@ -56,5 +57,10 @@ class Post extends Model
     public function comments(): MorphMany
     {
         return $this->morphMany(Comment::class, 'commentable');
+    }
+
+    public function author()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

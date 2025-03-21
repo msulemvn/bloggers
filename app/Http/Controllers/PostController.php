@@ -79,7 +79,7 @@ class PostController extends Controller
         if (Auth::check() && request()->routeIs('posts.show')) {
 
             return Inertia::render("posts/show", [
-                "post" => PostResource::make($post->load(['tags', 'comments.user', 'comments.replies'])),
+                "post" => PostResource::make($post->load(['tags', 'comments.user', 'comments.replies', 'author:id,name'])),
             ]);
         } else {
             if (!$post->is_published || $post->status !== 'approved') {
@@ -87,7 +87,7 @@ class PostController extends Controller
             }
 
             return Inertia::render('posts/show', [
-                'post' => PostResource::make($post->load(['tags', 'comments.user', 'comments.replies'])),
+                'post' => PostResource::make($post->load(['tags', 'comments.user', 'comments.replies', 'author:id,name'])),
             ]);
         }
     }

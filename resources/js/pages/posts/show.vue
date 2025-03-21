@@ -16,39 +16,17 @@ import { Link } from "@inertiajs/vue3";
 
 const { toast } = useToast();
 
-interface Author {
-    name: string;
-    username: string;
-    bio: string;
-    photo: string;
-    twitter?: string;
-    github?: string;
-}
-
-// Define the Post interface based on your app's requirements
 interface Post {
-    // Add your post properties here
     id?: number;
     title?: string;
-    // other properties...
 }
 
-// Define props with TypeScript and default values
-const props = withDefaults(defineProps<{
+const props = defineProps<{
     post: Post;
     auth: any;
-    author: Author;
-}>(), {
-    author: () => ({
-        name: 'Yaz Jallad',
-        username: 'ninjaparade',
-        bio: 'Yaz is a full stack developer with a passion for everything Laravel, React, TypeScript Tailwind CSS and Inertia.js.',
-        photo: 'https://laravel-news.com/storage/profile-photos/fg5RHQiXXEXoGki2AHm8LTHnDK2zVhZuOgFhwViq.jpg',
-        twitter: '@ninjaparade',
-        github: 'ninjaparade'
-    })
-});
-
+    author: any;
+}>();
+const author = computed(() => props.post.data.author.name);
 // Helper function to get initials for avatar fallback
 const getInitials = (name: string): string => {
     return name
@@ -233,17 +211,19 @@ onMounted(() => {
     <Head :title="props.post.data.title" />
 
     <div :breadcrumbs="props.auth.user ? breadcrumbs : undefined" class="container mx-auto lg:max-w-screen-sm mt-20">
-        <div class="flex flex-1 flex-col gap-6">
-            <h1 class="text-3xl font-bold mb-4">{{ props.post.data.title }}</h1>
+        <div class="flex flex-1 flex-col gap-6 items-left">
 
             <Card class="w-full overflow-hidden border-0">
-                <CardHeader v-if="props.post.data.feature_image" class="my-5 p-0">
-                    <img :src="props.post.data.feature_image" alt="Feature Image" class="w-full h-96 object-fit" />
+                <CardHeader v-if="props.post.data.feature_image" class="my-6 p-0">
+                    <CardTitle class="text-4xl font-bold">{{ props.post.data.title }}</CardTitle>
+                    <CardDescription class="text-l mb-4">{{ props.post.data.description }}</CardDescription>
+                    <img :src="props.post.data.feature_image" alt="Feature Image"
+                        class="w-full h-96 object-fit !rounded-sm" />
                 </CardHeader>
 
-                <CardContent>
-                    <QuillyEditor class="min-h-[10vh] border" ref="editor" v-model="model" :options="options"
-                        v-if="props.auth.user && props.auth.user.id == props.post.data.user_id"
+                <CardContent class="!p-0 mt-6">
+                    <QuillyEditor class="min-h-[10vh] border !rounded-sm" ref="editor" v-model="model"
+                        :options="options" v-if="props.auth.user && props.auth.user.id == props.post.data.user_id"
                         @update:modelValue="(value) => console.log('HTML model updated:', value)"
                         @text-change="({ delta, oldContent, source }) => console.log('text-change', delta, oldContent, source)"
                         @selection-change="({ range, oldRange, source }) => console.log('selection-change', range, oldRange, source)"
@@ -262,28 +242,28 @@ onMounted(() => {
                     </div>
                 </CardFooter>
             </Card>
-            <Card class="p-6">
+            <Card class="pb-6 border-0">
                 <div class="flex flex-col items-start space-y-4 sm:flex-row sm:space-x-6 sm:space-y-0">
                     <Avatar class="h-20 w-20 !rounded-sm">
-                        <AvatarImage :src="author.photo" :alt="`${author.name} photo`" />
-                        <AvatarFallback>{{ getInitials(author.name) }}</AvatarFallback>
+                        <AvatarImage style="object-fit: contain" class="p-[0.3rem] pb-0" src="/user.svg"
+                            :alt="`${author} photo`" />
+                        <AvatarFallback>{{ getInitials(author) }}</AvatarFallback>
                     </Avatar>
-
                     <div>
                         <p class="font-display text-2xl font-bold leading-none text-black" itemprop="author">
                             <Link
                                 class="inline-flex rounded-sm transition duration-300 leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600/80"
-                                :href="'/@' + author.username" rel="author">
-                            {{ author.name }}
+                                :href="'/@' + author.toLowerCase()" rel="author">
+                            {{ author }}
                             </Link>
                         </p>
                         <div
                             class="prose prose-sm mt-2 text-gray-600 prose-a:text-red-600 prose-a:transition prose-a:hover:text-red-700">
-                            <p>{{ author.bio }}</p>
+                            <p>Author @Bloggers</p>
                         </div>
-                        <div class="mt-4 flex gap-2">
+                        <div class="flex gap-2">
                             <Link v-if="author.twitter"
-                                class="inline-flex h-5 w-5 items-center justify-center !rounded-full transition duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600/80 hover:opacity-80"
+                                class="inline-flex h-5 w-5 items-center justify-start !rounded-full transition duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600/80 hover:opacity-80"
                                 :href="'https://twitter.com/' + author.twitter" target="_blank"
                                 rel="noopener noreferrer">
                             <img class="h-4 w-4" src="https://picperf.io/https://laravel-news.com/images/x.svg"

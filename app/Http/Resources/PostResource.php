@@ -11,6 +11,7 @@ class PostResource extends JsonResource
         return [
             "id" => $this->id,
             "title" => $this->title,
+            "description" => $this->description,
             "slug" => $this->slug,
             "user_id" => $this->user_id,
             "content" => $this->content,
@@ -19,6 +20,7 @@ class PostResource extends JsonResource
             "status" => $this->status,
             'tags' => TagResource::collection($this->whenLoaded('tags')),
             'comments' => CommentResource::collection($this->whenLoaded('comments')),
+            'author' => $this->whenLoaded('author')
         ];
     }
 }
