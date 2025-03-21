@@ -16,6 +16,7 @@ return new class extends Migration
             $table->text('title');
             $table->text('slug')->unique();
             $table->foreignId('user_id')->constrained('users');
+            $table->string('description');
             $table->text('content');
             $table->string('feature_image')->nullable();
             $table->boolean('is_published')->default(false);

@@ -1,20 +1,79 @@
 <script setup lang="ts">
-
 import Header from '@/components/Header.vue';
+import PlaceholderPattern from '@/components/PlaceholderPattern.vue';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 const props = defineProps<{
     auth: any;
 }>();
 
+const cards = Array.from({ length: 15 }, (_, i) => ({
+    id: i + 1,
+    title: `Card Title ${i + 1}`,
+    description: "This is a short description of the card content.",
+    link: "#",
+}));
 </script>
 
 <template>
 
     <Head title="Home" />
-    <div class="flex flex-col items-center bg-[#FDFDFC] p-4 text-[#1b1b18] dark:bg-[#0a0a0a] lg:justify-start">
+
+    <header class="flex flex-col items-center bg-[#FDFDFC] p-4 text-[#1b1b18] dark:bg-[#0a0a0a] lg:justify-start">
         <Header :showNav="true" :authenticated="props.auth.user" />
-    </div>
-    <div class="flex justify-center">
-        <h1 class="text-2xl font-bold my-6">Welcome to my homepage</h1>
-    </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="flex items-center justify-center h-80 bg-gray-100 text-black">
+        <div class="text-center">
+            <h1 class="text-5xl font-bold sm:text-6xl">Bloggers</h1>
+            <p class="mt-4 text-gray-600">All latest blogs</p>
+        </div>
+    </section>
+
+    <main class="flex-grow py-12 bg-white dark:bg-gray-950">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <Card v-for="card in cards" :key="card.id"
+                    class="overflow-hidden rounded-lg shadow-md transition-all duration-300 hover:shadow-xl hover:translate-y-[-4px]">
+                    <CardHeader class="!aspect-[2/1] w-full p-0 relative aspect-video overflow-hidden">
+                        <PlaceholderPattern class="w-full h-full" />
+                    </CardHeader>
+                    <CardContent class="p-4">
+                        <CardTitle class="text-xl font-bold transition group-hover:text-red-600 sm:text-2xl">
+                            {{ card.title }}
+                        </CardTitle>
+                        <CardDescription class="mt-3 max-w-2xl text-gray-600">
+                            {{ card.description }}
+                        </CardDescription>
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+    </main>
+
+    <!-- Call to Action Section -->
+    <section class="flex items-center justify-center h-80 bg-gray-100 text-black">
+        <div class="text-center">
+            <h1 class="text-4xl font-bold">Ready to get started?</h1>
+            <p class="mt-4 text-lg text-gray-600">Join us today and explore the possibilities!</p>
+            <Button variant="secondary" class="mt-6">Get Started Now</Button>
+        </div>
+    </section>
+
+    <footer class="py-8 px-4 bg-white dark:bg-gray-900">
+        <div class="container mx-auto text-center">
+            <p class="text-gray-700 dark:text-gray-300">&copy; 2025 YourCompany. All rights reserved.</p>
+            <div class="flex justify-center space-x-6 mt-4">
+                <a href="#"
+                    class="text-sm text-gray-600 hover:text-[#fdfdfe]-500 dark:text-gray-400 dark:hover:text-[#fdfdfe]-400">
+                    Privacy Policy
+                </a>
+                <a href="#"
+                    class="text-sm text-gray-600 hover:text-[#fdfdfe]-500 dark:text-gray-400 dark:hover:text-[#fdfdfe]-400">
+                    Terms of Service
+                </a>
+            </div>
+        </div>
+    </footer>
 </template>

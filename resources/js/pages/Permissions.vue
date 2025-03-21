@@ -20,7 +20,7 @@ const props = defineProps<{
     auth: any;
     roles: { id: number; name: string; permissions: string[] }[];
     perms: { id: number; name: string }[];
-    users: { id: number; name: string; roles: { id: number; name: string }[] }[];
+    users: { id: number; name: string; roles: { id: number; name: string; pivot?: any }[] }[];
 }>();
 
 const adminPermissions = ref<Record<string, string[]>>(
@@ -73,9 +73,18 @@ const saveUserRoles = () => {
 };
 
 const userSearch = ref('');
-const permissionSearch = ref('');
+const roleSearch = ref('');
 
-const currentUser = computed(() => props.users.find(user => user.id === props.auth.user.id));
+// Create a computed property for filtered roles
+const filteredRoles = computed(() => {
+    const roleNames = Object.keys(adminPermissions.value);
+    if (!roleSearch.value) return roleNames;
+    return roleNames.filter(roleName =>
+        roleName.toLowerCase().includes(roleSearch.value.toLowerCase())
+    );
+});
+
+const currentUser = computed(() => props.users.find(user => user.id === props.auth?.user?.id));
 const userRole = computed(() => currentUser.value?.roles[0]?.name || 'No Role');
 const userPermissions = computed(() => {
     const role = props.roles.find(r => r.name === userRole.value);
@@ -91,6 +100,11 @@ const userPermissionsByModel = computed(() => {
     });
     return result;
 });
+
+// Helper function to check if current user has a specific role
+const is = (roleName: string) => {
+    return userRole.value === roleName;
+};
 </script>
 
 <template>
@@ -106,7 +120,7 @@ const userPermissionsByModel = computed(() => {
                     <p class="text-lg font-medium">Role: <span class="font-semibold">{{ userRole }}</span></p>
                     <Separator class="my-4" />
                     <h3 class="text-lg font-semibold">Permissions:</h3>
-                    <ScrollArea class="h-auto pr-4 mt-2">
+                    <ScrollArea class="h-auto pr-4">
                         <div v-for="(actions, model) in userPermissionsByModel" :key="model" class="mb-4">
                             <h4 class="text-md font-semibold capitalize">{{ model }}</h4>
                             <ul class="list-disc list-inside space-y-2 pl-4">
@@ -120,13 +134,11 @@ const userPermissionsByModel = computed(() => {
             </Card>
         </div>
         <div v-else class="container mx-auto py-6">
+            <h1 class="text-2xl font-bold mb-6">Assign Roles to Accounts</h1>
+            <Input v-model="userSearch" placeholder="Search users..." class="mb-4" />
             <Card class="mb-10">
-                <CardHeader class="pb-4">
-                    <CardTitle class="text-xl font-semibold">Assign Roles to Users</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <Input v-model="userSearch" placeholder="Search users..." class="mb-4" />
-                    <ScrollArea class="h-auto pr-4">
+                <CardContent class="p-6">
+                    <ScrollArea class="h-28 pr-4">
                         <div class="space-y-4">
                             <div v-for="user in props.users.filter(u => u.name.toLowerCase().includes(userSearch.toLowerCase()))"
                                 :key="user.id" class="flex items-center justify-between">
@@ -145,43 +157,42 @@ const userPermissionsByModel = computed(() => {
                         </div>
                     </ScrollArea>
                 </CardContent>
-                <div class="flex justify-end p-4">
-                    <Button @click="saveUserRoles" size="lg" class="px-8 py-3 text-base">
-                        Save User Roles
-                    </Button>
-                </div>
             </Card>
+            <div class="flex justify-end p-4">
+                <Button @click="saveUserRoles" size="lg" class="px-8 py-3 text-base">
+                    Save User Roles
+                </Button>
+            </div>
 
             <h1 class="text-2xl font-bold mb-6">Change Permissions for Roles</h1>
-            <Input v-model="permissionSearch" placeholder="Search roles..." class="mb-4" />
-            <ScrollArea class="h-96 pr-4">
-                <div>
-                    <Card v-for="(permissions, role) in adminPermissions" :key="role" class="mb-10">
-                        <CardHeader class="pb-4">
-                            <CardTitle class="text-xl font-semibold capitalize">{{ role }}</CardTitle>
-                        </CardHeader>
-                        <CardContent class="pt-4 px-6 pb-6">
-                            <div class="space-y-8">
-                                <div v-for="(permissionList, entity, index) in allPermissionsByEntity" :key="entity">
-                                    <h3 class="text-lg font-semibold capitalize mb-3">{{ entity }}</h3>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-5 gap-x-6 pl-4">
-                                        <div v-for="permission in permissionList.filter(p => p.toLowerCase().includes(permissionSearch.toLowerCase()))"
-                                            :key="permission" class="flex items-center space-x-3">
-                                            <Checkbox :id="`${role}-${permission}`"
-                                                :checked="adminPermissions[role].includes(permission)"
-                                                @update:checked="() => togglePermission(role, permission)" />
-                                            <label :for="`${role}-${permission}`" class="text-sm leading-none">
-                                                {{ permission.split(':')[0] }}
-                                            </label>
-                                        </div>
+
+            <Input v-model="roleSearch" placeholder="Search roles..." class="mb-4" />
+            <ScrollArea class="h-72 pr-4 overflow-auto">
+                <Card v-for="role in filteredRoles" :key="role" class="mb-10">
+                    <CardHeader class="pb-4">
+                        <CardTitle class="text-xl font-semibold capitalize">{{ role }}</CardTitle>
+                    </CardHeader>
+                    <CardContent class="p-6">
+                        <div class="space-y-8">
+                            <div v-for="(permissionList, entity, index) in allPermissionsByEntity" :key="entity">
+                                <h3 class="text-lg font-semibold capitalize mb-3">{{ entity }}</h3>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-5 gap-x-6 pl-4">
+                                    <div v-for="permission in permissionList" :key="permission"
+                                        class="flex items-center space-x-3">
+                                        <Checkbox :id="`${role}-${permission}`"
+                                            :checked="adminPermissions[role].includes(permission)"
+                                            @update:checked="() => togglePermission(role, permission)" />
+                                        <label :for="`${role}-${permission}`" class="text-sm leading-none">
+                                            {{ permission.split(':')[0] }}
+                                        </label>
                                     </div>
-                                    <Separator v-if="index < Object.entries(allPermissionsByEntity).length - 1"
-                                        class="mt-6" />
                                 </div>
+                                <Separator v-if="index < Object.entries(allPermissionsByEntity).length - 1"
+                                    class="mt-6" />
                             </div>
-                        </CardContent>
-                    </Card>
-                </div>
+                        </div>
+                    </CardContent>
+                </Card>
             </ScrollArea>
             <div class="flex justify-end">
                 <Button @click="savePermissions" size="lg" class="px-8 py-3 text-base">
