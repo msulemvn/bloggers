@@ -34,10 +34,10 @@ const mainNavItems: NavItem[] = [
         role: 'user'
     },
     {
-        title: 'Permissions',
-        href: '/permissions',
+        title: 'Roles',
+        href: '/roles',
         icon: ShieldCheck,
-        role: 'admin | user'
+        role: 'admin'
     }
 ];
 

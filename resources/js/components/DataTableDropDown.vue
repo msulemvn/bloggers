@@ -15,7 +15,8 @@ const handleDelete = () => {
 </script>
 
 <template>
-    <DropdownMenu v-if="can('update:posts | delete:posts')">
+    <!-- <DropdownMenu v-if="can('update:posts | delete:posts')"> -->
+    <DropdownMenu>
         <DropdownMenuTrigger asChild>
             <Button variant="ghost" class="w-8 h-8 p-0">
                 <span class="sr-only">Open menu</span>

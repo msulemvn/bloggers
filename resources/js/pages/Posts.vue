@@ -1,10 +1,10 @@
     <script setup lang="ts">
     import AppLayout from '@/layouts/AppLayout.vue';
     import { type BreadcrumbItem, type Tag } from '@/types';
-    import { Head, Link, router } from '@inertiajs/vue3';
+    import { Head, Link } from '@inertiajs/vue3';
     import { ref, computed, watch } from 'vue';
     import { Button } from '@/components/ui/button';
-    import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+    import { Card, CardFooter, CardHeader } from '@/components/ui/card';
     import DataTableDialog from '@/components/DataTableDialog.vue';
     import axios from 'axios';
     import { useToast } from '@/components/ui/toast/use-toast';
@@ -297,7 +297,7 @@
                             <Link :href="'posts/' + post.slug">
                             <CardTitle v-if="!route().current('posts.index')">{{ post.title }}</CardTitle>
                             <CardDescription v-if="!route().current('posts.index')">{{ post.description
-                            }}
+                                }}
                             </CardDescription>
                             </Link>
                             <CardFooter class="flex flex-wrap items-center justify-between p-4 gap-4">
@@ -443,7 +443,7 @@
                                                             @update:checked="toggleTag(tag)" />
                                                         <label :for="'tag-' + getTagKey(tag)" class="text-sm">{{
                                                             tag.title
-                                                        }}</label>
+                                                            }}</label>
                                                     </div>
                                                 </div>
                                                 <div v-else class="text-sm text-gray-500 text-center py-2">

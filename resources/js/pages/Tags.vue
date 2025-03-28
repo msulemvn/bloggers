@@ -5,8 +5,8 @@
     import { Head } from '@inertiajs/vue3';
     import { ref, watch } from 'vue';
     import DataTable from '@/components/DataTable.vue';
-    import type {import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-    Table } from '@tanstack/vue-table';
+    import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+    import { Table } from '@tanstack/vue-table';
     import DataTablePagination from '@/components/DataTablePagination.vue';
     import { Button } from '@/components/ui/button';
     import { Plus } from 'lucide-vue-next';

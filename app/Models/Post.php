@@ -27,9 +27,15 @@ class Post extends Model
             $post->user_id = $post->user_id ?? Auth::id();
         });
     }
+
     public function scopeCurrentUserPost(Builder $query)
     {
         return $query->where('user_id', Auth::id());
+    }
+
+    public function scopeShowablePost(Builder $query)
+    {
+        return $query->where('status', 'approved')->where('is_published', true)->latest();
     }
 
     public function getSlugOptions(): SlugOptions
