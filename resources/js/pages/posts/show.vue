@@ -222,7 +222,7 @@ onMounted(() => {
                 </CardHeader>
 
                 <CardContent class="!p-0 mt-6">
-                    <QuillyEditor class="min-h-[10vh] border !rounded-sm" ref="editor" v-model="model"
+                    <!-- <QuillyEditor class="min-h-[10vh] border !rounded-sm" ref="editor" v-model="model"
                         :options="options" v-if="props.auth.user && props.auth.user.id == props.post.data.user_id"
                         @update:modelValue="(value) => console.log('HTML model updated:', value)"
                         @text-change="({ delta, oldContent, source }) => console.log('text-change', delta, oldContent, source)"
@@ -230,10 +230,11 @@ onMounted(() => {
                         @editor-change="(eventName) => console.log('editor-change', `eventName: ${eventName}`)"
                         @focus="(quill) => console.log('focus', quill)" @blur="(quill) => console.log('blur', quill)"
                         @ready="(quill) => console.log('ready', quill)" />
-                    <div v-else v-html="props.post.data.content" class="prose max-w-none"></div>
+                    <div v-else v-html="props.post.data.content" class="prose max-w-none"></div> -->
+                    <div v-html="props.post.data.content" class="prose max-w-none"></div>
                 </CardContent>
 
-                <CardFooter>
+                <CardFooter class="!p-6">
                     <div v-if="props.post.data.tags && props.post.data.tags.length" class="flex flex-wrap gap-2">
                         <span v-for="tag in props.post.data.tags" :key="tag.id"
                             class="px-3 py-1 bg-muted text-foreground text-sm rounded">

@@ -41,6 +41,9 @@ importers:
       laravel-vite-plugin:
         specifier: ^1.0
         version: 1.2.0(vite@6.2.1(@types/node@22.13.10)(jiti@1.21.7)(yaml@2.7.0))
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
       lucide:
         specifier: ^0.468.0
         version: 0.468.0
@@ -54,8 +57,8 @@ importers:
         specifier: ^1.9.11
         version: 1.9.17(vue@3.5.13(typescript@5.8.2))
       reka-ui:
-        specifier: ^2.1.0
-        version: 2.1.0(typescript@5.8.2)(vue@3.5.13(typescript@5.8.2))
+        specifier: ^2.1.1
+        version: 2.1.1(typescript@5.8.2)(vue@3.5.13(typescript@5.8.2))
       tailwind-merge:
         specifier: ^2.6.0
         version: 2.6.0
@@ -1379,8 +1382,8 @@ packages:
     resolution: {integrity: sha512-W67iLl4J2EXEGTbfeHCffrjDfitvLANg0UlX3wFUUSTx92KXRFegMHUVgSqE+wvhAbi4WqjGg9czysTV2Epbew==}
     engines: {node: '>= 0.4'}
 
-  ohash@1.1.6:
-    resolution: {integrity: sha512-TBu7PtV8YkAZn0tSxobKY2n2aAQva936lhRrj6957aDaCf9IEtqsKbgMzXE/F/sjqYOwmrukeORHNLe5glk7Cg==}
+  ohash@2.0.11:
+    resolution: {integrity: sha512-RdR9FQrFwNBNXAr4GixM8YaRZRJ5PUWbKYbE5eOsrwAjJW0q2REGcf79oYPsLyskQCZG1PLN+S/K1V00joZAoQ==}
 
   optionator@0.9.4:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
@@ -1593,8 +1596,8 @@ packages:
     resolution: {integrity: sha512-hOS089on8RduqdbhvQ5Z37A0ESjsqz6qnRcffsMU3495FuTdqSm+7bhJ29JvIOsBDEEnan5DPu9t3To9VRlMzA==}
     engines: {node: '>=8.10.0'}
 
-  reka-ui@2.1.0:
-    resolution: {integrity: sha512-w4kEDEyXhIqv4QeFJeiuBc4mQP37hH/UTRpEb9dMbPdR49JG5TcV/s0+ntNRONUUW4LDLX7E1ZPcwBw5hnu0yw==}
+  reka-ui@2.1.1:
+    resolution: {integrity: sha512-awvpQ041LPXAvf2uRVFwedsyz9SwsuoWlRql1fg4XimUCxEI2GOfHo6FIdL44dSPb/eG/gWbdGhoGHLlbX5gPA==}
     peerDependencies:
       vue: '>= 3.2.0'
 
@@ -3153,7 +3156,7 @@ snapshots:
 
   object-inspect@1.13.4: {}
 
-  ohash@1.1.6: {}
+  ohash@2.0.11: {}
 
   optionator@0.9.4:
     dependencies:
@@ -3307,7 +3310,7 @@ snapshots:
     dependencies:
       picomatch: 2.3.1
 
-  reka-ui@2.1.0(typescript@5.8.2)(vue@3.5.13(typescript@5.8.2)):
+  reka-ui@2.1.1(typescript@5.8.2)(vue@3.5.13(typescript@5.8.2)):
     dependencies:
       '@floating-ui/dom': 1.6.13
       '@floating-ui/vue': 1.1.6(vue@3.5.13(typescript@5.8.2))
@@ -3318,7 +3321,7 @@ snapshots:
       '@vueuse/shared': 12.8.2(typescript@5.8.2)
       aria-hidden: 1.2.4
       defu: 6.1.4
-      ohash: 1.1.6
+      ohash: 2.0.11
       vue: 3.5.13(typescript@5.8.2)
     transitivePeerDependencies:
       - '@vue/composition-api'

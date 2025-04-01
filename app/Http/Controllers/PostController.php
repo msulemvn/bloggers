@@ -40,10 +40,7 @@ class PostController extends Controller
                 'tags' => TagResource::collection(Tag::all()),
             ]);
         } else {
-            $posts = Post::where('is_published', true)
-                ->where('status', 'approved')
-                ->latest()
-                ->paginate();
+            $posts = Post::query()->showablePost()->paginate();
 
             return Inertia::render('Posts', [
                 'posts' => PostResource::collection($posts),
@@ -126,8 +123,8 @@ class PostController extends Controller
 
     public function destroy(Request $request, Post $post)
     {
-        $post->tags()->sync([]);
         $post->delete();
+        $post->tags()->sync([]);
 
         logActivity(request: $request, description: "User deleted a post", showable: true);
         return apiResponse(message: "Post deleted successfully", statusCode: symfonyResponse::HTTP_NO_CONTENT);
